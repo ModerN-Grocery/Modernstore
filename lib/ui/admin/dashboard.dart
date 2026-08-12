@@ -1,0 +1,950 @@
+import 'package:badges/badges.dart' as badges;
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart'; // Keep for other widgets
+// import 'package:http/http.dart'; // http seems unused, can be removed if not needed elsewhere
+import 'package:image_picker/image_picker.dart';
+import 'package:modern_grocery/bloc/Banner_/DeleteBanner_bloc/delete_banner_bloc.dart';
+import 'package:modern_grocery/bloc/Banner_/GetAllBannerBloc/get_all_banner_bloc.dart';
+import 'package:modern_grocery/bloc/Dashboard/dashboard_bloc.dart';
+import 'package:modern_grocery/bloc/Orders/Get_All_Order/get_all_orders_bloc.dart';
+// --- Adjust this import path as needed ---
+
+// ------------------------------------------
+import 'package:modern_grocery/ui/admin/admin_profile.dart';
+import 'package:modern_grocery/ui/admin/order_history.dart';
+import 'package:modern_grocery/ui/admin/upload_recentpage.dart';
+import 'package:modern_grocery/widgets/app_color.dart';
+import 'package:modern_grocery/widgets/fontstyle.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+class Dashboard extends StatefulWidget {
+  const Dashboard({super.key});
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        BlocProvider.of<GetAllBannerBloc>(context).add(FetchGetAllBannerEvent());
+        BlocProvider.of<DashboardBloc>(context).add(FetchDashboardData());
+        BlocProvider.of<GetAllOrdersBloc>(context).add(FetchGetAllOrders());
+      }
+    });
+  }
+
+  int _currrentBanner = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0XFF0A0909), // Kept original color
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isTablet = constraints.maxWidth > 600;
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20.h),
+                  _buildAppBar(),
+                  SizedBox(height: 40.h),
+                  _buildSearchBar(),
+                  SizedBox(height: 40.h),
+                  _buildbanner(isTablet: isTablet),
+                  SizedBox(height: 20.h),
+                  _buildSummaryCards(),
+                  SizedBox(height: 20.h),
+                  _buildStatsContainer(),
+                  SizedBox(height: 20.h),
+                  if (isTablet)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _buildTopCategoriesChart()),
+                        SizedBox(width: 20.w),
+                        Expanded(child: _buildMonthlyOrdersChart()),
+                      ],
+                    )
+                  else ...[
+                    _buildTopCategoriesChart(),
+                    SizedBox(height: 20.h),
+                    _buildMonthlyOrdersChart(),
+                  ],
+                  SizedBox(height: 20.h),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // --- UNCHANGED ---
+  Widget _buildAppBar() {
+    return Row(
+      children: [
+        Spacer(),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const OrderHistory()));
+          },
+          child: BlocBuilder<GetAllOrdersBloc, GetAllOrdersState>(
+            builder: (context, state) {
+              int count = 0;
+              if (state is GetAllOrdersLoaded) {
+                count = state.getAllOrdersModel.orders?.where((element) => element.orderStatus?.toUpperCase() == 'ORDER_PLACED').length ?? 0;
+              }
+              return badges.Badge(
+                showBadge: count > 0,
+                badgeContent: Text('$count',
+                    style: fontStyles.bodyText2.copyWith(color: Colors.white)),
+                child: SvgPicture.asset('assets/Group.svg'),
+              );
+            },
+          ),
+        ),
+        SizedBox(width: 24.w),
+        GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminProfile(),
+                  ));
+            },
+            child: SvgPicture.asset('assets/Group 6918.svg')),
+      ],
+    );
+  }
+
+  //
+  // [--- THIS SECTION IS MODIFIED ---]
+  //
+  Widget _buildbanner({bool isTablet = false}) {
+  return BlocBuilder<GetAllBannerBloc, GetAllBannerState>(
+    builder: (context, state) {
+      if (state is GetAllBannerLoaded) {
+        final banner = state.banner;
+
+        if (banner.banners.isEmpty) {
+          return Container(
+            height: 200.h,
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(8.0.r),
+            ),
+            child: Center(
+              child: Text(
+                'No Banners Found',
+                style: fontStyles.primaryTextStyle
+                    .copyWith(color: appColor.textColor2),
+              ),
+            ),
+          );
+        }
+
+        final bannerImg = banner.banners.toList();
+
+        return Column(
+          children: [
+            CarouselSlider(
+              carouselController: _carouselController,
+              items: bannerImg.map((bannerItem) {
+                final String url = (bannerItem.images.isNotEmpty)
+                    ? bannerItem.images[0]
+                    : "";
+
+                if (url.isEmpty || !url.startsWith('http')) {
+                  return _buildErrorImage();
+                }
+
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0.r),
+                      child: CachedNetworkImage(
+                        imageUrl: url,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorWidget: (context, url, error) =>
+                            _buildErrorImage(),
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[900]!,
+                          highlightColor: Colors.grey[800]!,
+                          child: Container(color: Colors.grey[800]),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8.h,
+                      right: 8.w,
+                      child: _buildbannerDelete(bannerItem.id, context),
+                    ),
+                  ],
+                );
+              }).toList(),
+              options: CarouselOptions(
+                height: isTablet ? 280.h : 200.h,
+                aspectRatio: isTablet ? 21 / 9 : 16 / 9,
+                viewportFraction: isTablet ? 0.85 : 0.98,
+                initialPage: 0,
+                enableInfiniteScroll: bannerImg.length > 1,
+                reverse: false,
+                autoPlay: bannerImg.length > 1,
+                autoPlayInterval: const Duration(seconds: 3),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                enlargeCenterPage: true,
+                enlargeFactor: 0.3,
+                scrollDirection: Axis.horizontal,
+                onPageChanged: (index, reason) {
+                  if (!mounted) return;
+                  setState(() {
+                    _currrentBanner = index;
+                  });
+                },
+              ),
+            ),
+            SizedBox(height: 22.h),
+            if (bannerImg.length > 1)
+              Padding(
+                padding: EdgeInsets.only(top: 8.h),
+                child: AnimatedSmoothIndicator(
+                  activeIndex: _currrentBanner,
+                  count: bannerImg.length,
+                  effect: WormEffect(
+                    dotHeight: 8.h,
+                    dotWidth: 8.w,
+                    spacing: 5.w,
+                    activeDotColor: Colors.white,
+                    dotColor: Colors.grey,
+                  ),
+                  onDotClicked: (index) {
+                    _carouselController.animateToPage(index);
+                  },
+                ),
+              ),
+          ],
+        );
+      } else if (state is GetAllBannerError) {
+        return Container(
+          height: 200.h,
+          decoration: BoxDecoration(
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(8.0.r),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: appColor.errorColor,
+                  size: 40.sp,
+                ),
+                SizedBox(height: 10.h),
+                Text(
+                  "Failed to load banners",
+                  style: fontStyles.errorstyle
+                      .copyWith(color: appColor.textColor2),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        // Loading
+        return SizedBox(
+          height: 222.h,
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[900]!,
+            highlightColor: Colors.grey[800]!,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 20.w),
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(8.0.r),
+              ),
+            ),
+          ),
+        );
+      }
+    },
+  );
+}
+
+  // [--- END OF MODIFIED SECTION ---]
+
+  // --- UNCHANGED ---// Add a controller at the top of your State class
+  final TextEditingController _searchController = TextEditingController();
+
+  Widget _buildSearchBar() {
+    return Row(mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // Expanded(
+        //   child: Container(
+        //     height: 41.h,
+        //     padding: EdgeInsets.symmetric(horizontal: 12.w),
+        //     decoration: BoxDecoration(
+        //       border: Border.all(color: const Color(0xFFFCF8E8), width: 2),
+        //       borderRadius: BorderRadius.circular(10.r),
+        //     ),
+        //     child: TextField(
+        //       controller: _searchController, // Added controller
+        //       onSubmitted: (value) {
+        //         // Trigger search logic here
+        //         print("Searching for: $value");
+        //       },
+        //       style: GoogleFonts.poppins(color: const Color(0x91FCF8E8)),
+        //       decoration: InputDecoration(
+        //         hintText: "Search here",
+        //         hintStyle: GoogleFonts.poppins(
+        //             color: const Color(0x91FCF8E8), fontSize: 12.sp),
+        //         border: InputBorder.none,
+        //         // Optional: Add a clear button
+        //         suffixIcon: IconButton(
+        //           icon: Icon(Icons.clear, size: 16.sp, color: Colors.white70),
+        //           onPressed: () => _searchController.clear(),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
+        SizedBox(width: 16.w),
+        GestureDetector(
+          onTap: () {
+            final pageContext = context;
+
+            showDialog(
+              context: pageContext,
+              builder: (dialogContext) => Dialog(
+                backgroundColor: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20.r),
+                  onTap: () async {
+                    final picker = ImagePicker();
+                    final pickedFile = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 80, // Optional: compress for faster upload
+                    );
+
+                    // 1. Close dialog first
+                    Navigator.of(dialogContext).pop();
+
+                    // 2. Check if mounted and file is not null
+                    if (pickedFile != null && mounted) {
+                      // ✅ CRITICAL FIX: Use .path instead of .name
+                      Navigator.push(
+                        pageContext,
+                        MaterialPageRoute(
+                          builder: (ctx) => RecentPage(imagePath: pickedFile.path),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: 383.w,
+                    height: 222.h,
+                    padding: EdgeInsets.all(20.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3C3C3C),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/upload.svg',
+                          height: 40.h,
+                        ),
+                        SizedBox(height: 12.h),
+                        Text(
+                          "Add A Banner Image",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          "Optimal dimensions 383*222",
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey.shade300,
+                            fontSize: 12.sp,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const Spacer(), // Pushes the icon to the bottom
+                        Icon(
+                          Icons.add_circle,
+                          color: Colors.white,
+                          size: 30.sp,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+          child: SvgPicture.asset('assets/upload.svg'),
+        ),
+      ],
+    );
+  }
+
+  // --- UNCHANGED ---
+ Widget _buildSummaryCards() {
+  return BlocBuilder<DashboardBloc, DashboardState>(
+    builder: (context, state) {
+      if (state is DashboardLoaded) {
+        final data = state.dashboardModel.data;
+
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.6,
+          children: [
+            SummaryCard(
+              title: 'Total Orders',
+              value: data?.totalOrders?.toString() ?? '0',
+              icon: Icons.list,
+            ),
+            SummaryCard(
+              title: 'Total Customers',
+              value: data?.totalUsers?.toString() ?? '0',
+              icon: Icons.people,
+            ),
+            SummaryCard(
+              title: 'Total Categories',
+              value: data?.totalCategories?.toString() ?? '0',
+              icon: Icons.grid_view,
+            ),
+            SummaryCard(
+              title: 'Total Revenue',
+              value: '₹${(data?.totalRevenue ?? 0).toStringAsFixed(2)}',
+              icon: Icons.credit_card,
+            ),
+          ],
+        );
+      }
+
+      if (state is DashboardError) {
+        return SizedBox(
+          height: 100.h,
+          child: Center(
+            child: Text(
+              "Data Error: ${state.message}\n(Check Model Types)",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: appColor.errorColor,
+                fontSize: 12.sp,
+              ),
+            ),
+          ),
+        );
+      }
+
+      // ✅ Shimmer Loading Grid
+      return GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.6,
+        children: List.generate(
+          4,
+          (index) => Shimmer.fromColors(
+            baseColor: Colors.grey[900]!,
+            highlightColor: Colors.grey[800]!,
+            child: const SummaryCard(
+              title: 'Loading...',
+              value: '...',
+              icon: Icons.hourglass_empty,
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+  // --- UNCHANGED ---
+  Widget _buildStatsContainer() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: const Color(0xff292727),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: BlocBuilder<DashboardBloc, DashboardState>(
+        builder: (context, state) {
+          if (state is DashboardLoaded) {
+            final data = state.dashboardModel.data;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    StatCard(
+                      label: 'New Orders',
+                      value: data?.orderStats!.newOrders?.toString() ?? '0',
+                      icon: Icons.receipt_long,
+                      position: CrossAxisAlignment.start,
+                    ),
+                    StatCard(
+                      label: 'Out for Delivery',
+                      value: data?.orderStats!.outForDelivery?.toString() ?? '0',
+                      icon: Icons.local_shipping,
+                      position: CrossAxisAlignment.end,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                const Divider(color: Color(0xffFFFFFF)),
+                SizedBox(height: 16.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    StatCard(
+                      label: 'Delivered',
+                      value: data?.orderStats!.delivered?.toString() ?? '0',
+                      icon: Icons.delivery_dining,
+                      position: CrossAxisAlignment.start,
+                    ),
+                    StatCard(
+                      label: 'Cancelled',
+                      value: data?.orderStats!.cancelled?.toString() ?? '0',
+                      icon: Icons.cancel,
+                      position: CrossAxisAlignment.end,
+                    ),
+                  ],
+                ),
+              ],
+            );
+          } else if (state is DashboardError) {
+            return Center(
+              child: Text(
+                "Error: ${state.message}",
+                style: GoogleFonts.poppins(color: appColor.errorColor, fontSize: 12.sp),
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+          // Shimmer for loading state
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[900]!,
+            highlightColor: Colors.grey[800]!,
+            child: Container(height: 150.h, color: Colors.black),
+          );
+        },
+      ),
+    );
+  }
+
+  // --- UNCHANGED ---
+  Widget _buildTopCategoriesChart() {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        List<PieChartSectionData> sections = [];
+        if (state is DashboardLoaded) {
+          final topCategories = state.dashboardModel.data?.topCategories ?? [];
+          final colors = [
+            Colors.green,
+            Colors.orange,
+            Colors.red,
+            Colors.blue,
+            Colors.purple,
+            Colors.cyan
+          ];
+
+          for (int i = 0; i < topCategories.length; i++) {
+            final category = topCategories[i];
+            sections.add(
+              PieChartSectionData(
+                value: (category.percentage ?? 0).toDouble(),
+                title: category.name ?? '',
+                color: colors[i % colors.length],
+                radius: 60.r,
+                titleStyle: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold),
+              ),
+            );
+          }
+        }
+
+        if (sections.isEmpty) {
+          sections = [
+            PieChartSectionData(
+                value: 100, title: 'No Data', color: Colors.grey, radius: 60.r)
+          ];
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Top Categories',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 18.sp),
+            ),
+            SizedBox(height: 10.h),
+            SizedBox(
+              height: 200.h,
+              child: PieChart(PieChartData(sections: sections)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // --- UNCHANGED ---
+  Widget _buildMonthlyOrdersChart() {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        List<BarChartGroupData> barGroups = [];
+        List<String> months = [];
+        double maxY = 10;
+        
+        if (state is DashboardLoaded) {
+          final monthlyOrders = state.dashboardModel.data?.monthlyOrders ?? [];
+          
+          for (int i = 0; i < monthlyOrders.length; i++) {
+            final order = monthlyOrders[i];
+            months.add(order.month ?? '');
+            final count = (order.count ?? 0).toDouble();
+            if (count > maxY) maxY = count;
+            
+            barGroups.add(
+              BarChartGroupData(x: i, barRods: [
+                BarChartRodData(
+                    toY: count,
+                    color: Colors.white,
+                    width: 16.w,
+                    borderRadius: BorderRadius.circular(4.r))
+              ]),
+            );
+          }
+        }
+
+        // Determine intervals dynamically based on maximum value
+        double interval = (maxY / 4).ceilToDouble();
+        if (interval == 0) interval = 1;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Orders Monthly',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 18.sp),
+            ),
+            SizedBox(height: 10.h),
+            SizedBox(
+              height: 200.h,
+              child: BarChart(
+                BarChartData(
+                  maxY: maxY + (maxY * 0.2), // Provide 20% breathing room on top
+                  barGroups: barGroups,
+                  borderData: FlBorderData(show: false),
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30.h,
+                        getTitlesWidget: (value, meta) {
+                          if (value < 0 || value >= months.length) return const SizedBox();
+                          return Padding(
+                            padding: EdgeInsets.only(top: 8.h),
+                            child: Text(
+                              months[value.toInt()],
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white, fontSize: 12.sp),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40.w,
+                        interval: interval,
+                        getTitlesWidget: (value, meta) {
+                          if (value == 0) return const SizedBox();
+                          return Text(
+                            value.toInt().toString(),
+                            style: GoogleFonts.poppins(
+                                color: Colors.white, fontSize: 12.sp),
+                          );
+                        },
+                      ),
+                    ),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (group) => Colors.blueGrey,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        return BarTooltipItem(
+                          '${months[groupIndex]}\n${rod.toY.toInt()} Orders',
+                          GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+} // End of _DashboardState
+
+// --- UNCHANGED ---
+class SummaryCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const SummaryCard({
+    super.key, // Added key
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 160.w,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+          color: const Color(0xffFCF8E8), // Consider using appColor
+          borderRadius: BorderRadius.circular(12.r), // Use .r
+          boxShadow: [
+            // Added subtle shadow
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            )
+          ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              color: Colors.black,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold, // Consider adjusting weight
+            ),
+            maxLines: 1, // Prevent overflow
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment:
+                CrossAxisAlignment.center, // Align items vertically
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 20.sp, // Consider adjusting size
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(icon, color: Colors.black, size: 24.sp), // Use .sp
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- UNCHANGED ---
+class StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final CrossAxisAlignment position;
+
+   
+
+  const StatCard({
+    super.key, // Added key
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.position ,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment:position,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: Colors.white, // Consider Colors.white70
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold, // Consider adjusting weight
+          ),
+          maxLines: 1, // Prevent overflow
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 8.h), // Consider reducing space
+        Row(
+          children: [
+            // Consider placing Icon first
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                color: const Color(0xffF5E9B5), // Consider appColor.textColor
+                fontSize: 20.sp, // Consider adjusting size
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Icon(icon, color: Colors.white, size: 24.sp), // Use .sp
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// --- MODIFIED Error Image Widget ---
+Widget _buildErrorImage() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.grey[800], // Kept original color
+      borderRadius: BorderRadius.circular(8.0.r),
+    ),
+    child: Center(
+      // Center content
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported_outlined, // Changed icon
+            color: Colors.grey[400],
+            size: 50.sp,
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Image Load Failed', // Changed text
+            // --- Refactored Style ---
+            style: fontStyles.errorstyle2.copyWith(
+              color: Colors.grey[400],
+            ),
+            textAlign: TextAlign.center, // Center text
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// --- MODIFIED Delete Banner Widget ---
+Widget _buildbannerDelete(String bannerId, BuildContext context) {
+  return InkWell(
+    // Use InkWell for better tap feedback
+    onTap: () {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            backgroundColor: appColor.backgroundColor, // Use appColor
+            // --- Refactored Style ---
+            title: Text('Delete Banner?',
+                style:
+                    fontStyles.heading2.copyWith(color: appColor.textColor2)),
+            // --- Refactored Style ---
+            content: Text('Are you sure you want to delete this banner?',
+                style: fontStyles.primaryTextStyle
+                    .copyWith(color: appColor.textColor2)),
+            actions: [
+              TextButton(
+                // --- Refactored Style ---
+                child: Text('Cancel',
+                    style: fontStyles.bodyText
+                        .copyWith(color: appColor.textColor)),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              TextButton(
+                // --- Refactored Style ---
+                child: Text('Delete',
+                    style: fontStyles.bodyText
+                        .copyWith(color: appColor.errorColor)),
+                onPressed: () {
+                  BlocProvider.of<DeleteBannerBloc>(context)
+                      .add(fetchDeleteBannerEvent(BnnerId: bannerId));
+                  Navigator.of(dialogContext).pop();
+                          BlocProvider.of<GetAllBannerBloc>(context).add(FetchGetAllBannerEvent());
+
+
+
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+    child: Container(
+      height: 32.h, // Larger tap area
+      width: 32.w,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.5), // Semi-transparent black
+        shape: BoxShape.circle,
+      ),
+      child: Icon(Icons.delete_outline,
+          color: appColor.errorColor, size: 18.sp), // Use outlined icon
+    ),
+  );
+}

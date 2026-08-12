@@ -1,0 +1,57 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.modern_grocery"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.example.modern_grocery"
+        minSdk = 21
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+
+    flavorDimensions += "app"
+
+    productFlavors {
+
+        user {
+            dimension = "app"
+            applicationIdSuffix = ".user"
+            versionNameSuffix = "-user"
+            resValue "string", "app_name", "Modern Grocery User"
+        }
+
+        admin {
+            dimension = "app"
+            applicationIdSuffix = ".admin"
+            versionNameSuffix = "-admin"
+            resValue "string", "app_name", "Modern Grocery Admin"
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
