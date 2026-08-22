@@ -18,6 +18,7 @@ class SendOtpBloc extends Bloc<SendOtpEvent, SendOtpState> {
         final response = await api.sendOtp(event.phoneNumber);
         emit(SendOtpSuccess(model: response));
       } catch (e) {
+        print('❌ SendOtpBloc Error: $e');
         emit(SendOtpFailure(error: e.toString()));
       }
     });

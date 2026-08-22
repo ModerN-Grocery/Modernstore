@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:modern_grocery/ui/admin/admin_navibar.dart';
 import 'package:modern_grocery/ui/bottom_navigationbar.dart';
@@ -25,45 +26,64 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print(  'Checking login status...');
-    print(  'Token from prefs: "$token"');
+    print('Checking login status...');
+    print('Token from prefs: "$token"');
+    print('Active appFlavor: "$appFlavor"');
 
-    // --- ADD THIS LOGIC ---
-    // Check for any of the admin flags, just like in VerifyScreen
     final role = prefs.getString('role');
     final userType = prefs.getString('userType');
     final isAdminFlag = prefs.getBool('isAdmin');
     UserId = prefs.getString('userId') ?? '';
-
 
     final bool isAdmin = role == 'admin' ||
         role == 'Admin' ||
         userType == 'admin' ||
         userType == 'Admin' ||
         isAdminFlag == true;
- 
 
     Timer(
       const Duration(seconds: 2),
       () {
-        if (!mounted) return; // Always check if widget is still mounted
+        if (!mounted) return;
 
-print(UserId);
         if (token != null && token.isNotEmpty && UserId.isNotEmpty) {
-          // --- THIS IS THE UPDATED REDIRECT ---
-          if (isAdmin&&UserId.isNotEmpty) {
-            // Send admins to AdminNavibar
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const AdminNavibar()),
-            );
+          if (appFlavor == 'user') {
+            // User app flavor: ONLY regular users allowed! Admin accounts are blocked.
+            if (isAdmin) {
+              prefs.clear();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const OnboardingPage()),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => NavigationBarWidget(initialIndex: 0)),
+              );
+            }
+          } else if (appFlavor == 'admin') {
+            // Admin app flavor: ONLY admins allowed! Regular users are blocked.
+            if (isAdmin) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const AdminNavibar()),
+              );
+            } else {
+              prefs.clear();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const OnboardingPage()),
+              );
+            }
           } else {
-            // Send regular users to LocationPage
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => NavigationBarWidget(initialIndex: 0,)),
-            );
+            // Standard / default single app routing
+            if (isAdmin) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const AdminNavibar()),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => NavigationBarWidget(initialIndex: 0)),
+              );
+            }
           }
         } else {
-          // No token, send to Onboarding
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const OnboardingPage()),
           );

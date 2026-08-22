@@ -54,8 +54,8 @@ import 'repositery/api/User/GetUserDlvAddresses_api.dart';
 import 'repositery/api/Orders/Create_order_Api.dart';
 import 'bloc/User/Edit_profile/edit_profile_bloc.dart';
 
-String basePath = "https://modern-store-backend.onrender.com/api";
-
+String basePath = "http://200.234.34.162:4055/api";
+// String basePath = "https://modern-store-backend.onrender.com/api";
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
@@ -211,7 +211,7 @@ class MyApp extends StatelessWidget {
                 ],
                 child: MaterialApp(
                   debugShowCheckedModeBanner: false,
-                  title: 'Modern Store',
+                  title: 'Modern Grocery',
                   theme: ThemeData(
                     useMaterial3: true,
                   ),

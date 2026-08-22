@@ -143,20 +143,63 @@ class _VerifyScreenState extends State<VerifyScreen> {
               if (!mounted) return;
 
               if (isSaved) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) {
-                      if (isAdmin) {
-                        return AdminNavibar();
-                      } else {
-                        return userId.isEmpty
+                if (appFlavor == 'user') {
+                  // User app flavor: ONLY regular users allowed! Block admin accounts.
+                  if (isAdmin) {
+                    await prefs.clear();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Access Denied: Admin accounts cannot log into the User App."),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => userId.isEmpty
                             ? LocationPage()
-                            : NavigationBarWidget(initialIndex: 0);
-                      }
-                    },
-                  ),
-                );
+                            : NavigationBarWidget(initialIndex: 0),
+                      ),
+                    );
+                  }
+                } else if (appFlavor == 'admin') {
+                  // Admin app flavor: only admins allowed
+                  if (isAdmin) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminNavibar(),
+                      ),
+                    );
+                  } else {
+                    await prefs.clear();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Access Denied: Only Admin accounts can log into the Admin App."),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } else {
+                  // Fallback for default single app
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) {
+                        if (isAdmin) {
+                          return const AdminNavibar();
+                        } else {
+                          return userId.isEmpty
+                              ? LocationPage()
+                              : NavigationBarWidget(initialIndex: 0);
+                        }
+                      },
+                    ),
+                  );
+                }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

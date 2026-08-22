@@ -7,6 +7,8 @@ pluginManagement {
         return flutterSdkPath
     }()
 
+    System.setProperty("FLUTTER_ROOT", flutterSdkPath)
+
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
@@ -19,8 +21,8 @@ pluginManagement {
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
     // Match AGP version with build.gradle
-    id "com.android.application" version "8.3.2" apply false
-    // Update Kotlin to latest stable compatible with AGP 8.3+
+    id "com.android.application" version "8.6.0" apply false
+    // Update Kotlin to latest stable compatible with AGP 8.6+
     id "org.jetbrains.kotlin.android" version "1.9.24" apply false
 }
 
