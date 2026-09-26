@@ -16,6 +16,7 @@ import 'package:modern_grocery/bloc/Orders/Get_All_Order/get_all_orders_bloc.dar
 // --- Adjust this import path as needed ---
 
 // ------------------------------------------
+import 'package:modern_grocery/ui/admin/admin_customers_page.dart';
 import 'package:modern_grocery/ui/admin/admin_profile.dart';
 import 'package:modern_grocery/ui/admin/order_history.dart';
 import 'package:modern_grocery/ui/admin/upload_recentpage.dart';
@@ -435,11 +436,27 @@ class _DashboardState extends State<Dashboard> {
               title: 'Total Orders',
               value: data?.totalOrders?.toString() ?? '0',
               icon: Icons.list,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrderHistory()),
+                );
+              },
             ),
             SummaryCard(
               title: 'Total Customers',
               value: data?.totalUsers?.toString() ?? '0',
               icon: Icons.people,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminCustomersPage(
+                      totalUsersCount: data?.totalUsers,
+                    ),
+                  ),
+                );
+              },
             ),
             SummaryCard(
               title: 'Total Categories',
@@ -743,61 +760,70 @@ class SummaryCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const SummaryCard({
     super.key, // Added key
     required this.title,
     required this.value,
     required this.icon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160.w,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-          color: const Color(0xffFCF8E8), // Consider using appColor
-          borderRadius: BorderRadius.circular(12.r), // Use .r
-          boxShadow: [
-            // Added subtle shadow
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            )
-          ]),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              color: Colors.black,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold, // Consider adjusting weight
-            ),
-            maxLines: 1, // Prevent overflow
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment:
-                CrossAxisAlignment.center, // Align items vertically
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          width: 160.w,
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+              color: const Color(0xffFCF8E8), // Consider using appColor
+              borderRadius: BorderRadius.circular(12.r), // Use .r
+              boxShadow: [
+                // Added subtle shadow
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                )
+              ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                value,
+                title,
                 style: GoogleFonts.poppins(
                   color: Colors.black,
-                  fontSize: 20.sp, // Consider adjusting size
-                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold, // Consider adjusting weight
                 ),
+                maxLines: 1, // Prevent overflow
+                overflow: TextOverflow.ellipsis,
               ),
-              Icon(icon, color: Colors.black, size: 24.sp), // Use .sp
+              SizedBox(height: 8.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Align items vertically
+                children: [
+                  Text(
+                    value,
+                    style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 20.sp, // Consider adjusting size
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(icon, color: Colors.black, size: 24.sp), // Use .sp
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

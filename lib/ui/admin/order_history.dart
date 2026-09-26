@@ -36,7 +36,46 @@ class _OrderHistoryState extends State<OrderHistory> {
           _buildAppBar(),
           SizedBox(height: 40.h),
           _buildSearchBar(),
-          SizedBox(height: 20.h),
+          if (_selectedFilter != 'All') ...[
+            SizedBox(height: 10.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                children: [
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1C),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: const Color(0xFFF5E9B5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Filter: ${_selectedFilter.replaceAll('_', ' ')}',
+                          style: TextStyle(
+                              color: const Color(0xFFF5E9B5), fontSize: 12.sp),
+                        ),
+                        SizedBox(width: 6.w),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedFilter = 'All';
+                            });
+                          },
+                          child: Icon(Icons.close,
+                              size: 14.sp, color: const Color(0xFFF5E9B5)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          SizedBox(height: 16.h),
           _buildOrderHistoryBloc(),
         ],
       ),
@@ -105,7 +144,15 @@ class _OrderHistoryState extends State<OrderHistory> {
             padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFCF8E8), width: 2)
+              border: Border.all(
+                color: _selectedFilter != 'All'
+                    ? const Color(0xFFF5E9B5)
+                    : const Color(0xFFFCF8E8),
+                width: 2,
+              ),
+              color: _selectedFilter != 'All'
+                  ? const Color(0xFFF5E9B5).withOpacity(0.15)
+                  : null,
             ),
             child: PopupMenuButton<String>(
               icon: SvgPicture.asset('assets/filter.svg'),
@@ -177,10 +224,17 @@ class _OrderHistoryState extends State<OrderHistory> {
 
           if (_selectedFilter != 'All') {
             orders = orders.where((order) {
-              final status = order.orderStatus?.toLowerCase() ?? '';
-              final filter = _selectedFilter.toLowerCase();
+              final status = (order.orderStatus ?? '').trim().toLowerCase().replaceAll(' ', '_');
+              final filter = _selectedFilter.trim().toLowerCase().replaceAll(' ', '_');
+
               if (filter == 'pending') {
                 return status == 'pending' || status == 'order_placed';
+              }
+              if (filter == 'cancelled' || filter == 'canceled') {
+                return status.contains('cancel');
+              }
+              if (filter == 'out_for_delivery') {
+                return status == 'out_for_delivery' || status == 'out-for-delivery';
               }
               return status == filter;
             }).toList();
@@ -266,7 +320,7 @@ class _OrderHistoryState extends State<OrderHistory> {
                                 ),
                               ),
                               Text(
-                                'Amount: ₹${order.finalAmount?.toStringAsFixed(2) ?? '0.00'}',
+                                'Amount: ₹${((order.itemsTotalAmount != null && order.itemsTotalAmount! > 0) ? order.itemsTotalAmount! : (order.finalAmount ?? 0)).toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 14.sp,
@@ -277,12 +331,28 @@ class _OrderHistoryState extends State<OrderHistory> {
                           ),
                           SizedBox(height: 10.h),
                           // Order Details
-                          Text(
-                            'Status: ${order.orderStatus ?? 'N/A'}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.sp,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                'Status: ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                              Text(
+                                order.orderStatus ?? 'N/A',
+                                style: TextStyle(
+                                  color: (order.orderStatus ?? '').toLowerCase().contains('cancel')
+                                      ? Colors.redAccent
+                                      : ((order.orderStatus ?? '').toLowerCase() == 'delivered'
+                                          ? Colors.greenAccent
+                                          : const Color(0xFFF5E9B5)),
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                           SizedBox(height: 10.h),
                           // Print Button
@@ -323,6 +393,20 @@ class _OrderHistoryState extends State<OrderHistory> {
 
   Future<void> _printOrder(dynamic order) async {
     final doc = pw.Document();
+
+    // Calculate sum of items so invoice total does not include 20 rs extra delivery charge
+    double itemsTotal = 0.0;
+    if (order.orderItems != null && (order.orderItems as List).isNotEmpty) {
+      for (final item in order.orderItems) {
+        itemsTotal += ((item as dynamic).itemTotalAmount ?? 0).toDouble();
+      }
+    } else if (order.itemsTotalAmount != null && order.itemsTotalAmount > 0) {
+      itemsTotal = (order.itemsTotalAmount as num).toDouble();
+    } else {
+      final double finalAmt = ((order.finalAmount as num?) ?? 0).toDouble();
+      final double deliv = ((order.deliveryCharge as num?) ?? 0).toDouble();
+      itemsTotal = (deliv > 0 && finalAmt >= deliv) ? (finalAmt - deliv) : finalAmt;
+    }
 
     doc.addPage(
       pw.Page(
@@ -379,7 +463,7 @@ class _OrderHistoryState extends State<OrderHistory> {
                 mainAxisAlignment: pw.MainAxisAlignment.end,
                 children: [
                   pw.Text(
-                      'Total: ${order.finalAmount?.toStringAsFixed(2) ?? '0.00'}',
+                      'Total: ${itemsTotal.toStringAsFixed(2)}',
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 ],
               ),

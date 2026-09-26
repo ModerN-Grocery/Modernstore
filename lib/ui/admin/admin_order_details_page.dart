@@ -244,7 +244,7 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
   Widget _buildStatusBadge(String status) {
     Color color = status.toLowerCase() == 'delivered'
         ? Colors.green
-        : (status.toLowerCase() == 'cancelled' ? Colors.red : Colors.orange);
+        : (status.toLowerCase().contains('cancel') ? Colors.red : Colors.orange);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(

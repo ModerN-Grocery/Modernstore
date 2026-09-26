@@ -12,10 +12,10 @@ import 'package:modern_grocery/bloc/Product_/createProduct/create_product_bloc.d
 import 'package:modern_grocery/bloc/Product_/update_product/update_product_bloc.dart';
 import 'package:modern_grocery/bloc/Product_/get_all_product/get_all_product_bloc.dart';
 import 'package:modern_grocery/repositery/model/product/getAllProduct.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:badges/badges.dart' as badges;
 
 import '../../widgets/utils.dart';
+import '../../services/product_excel_export_service.dart';
 
 // Constants for reusability
 class _AppConstants {
@@ -74,8 +74,21 @@ class _AdminProductState extends State<AdminProduct> {
     "BOX",
     "PACKET"
   ];
-  final TextEditingController discountController = TextEditingController();
+  final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+
+  String _calculateDiscountPercentage() {
+    final basePrice = double.tryParse(priceController.text.trim()) ?? 0.0;
+    final sellingPrice =
+        double.tryParse(sellingPriceController.text.trim()) ?? basePrice;
+
+    if (basePrice <= 0 || sellingPrice >= basePrice) {
+      return '0';
+    }
+
+    final discount = ((basePrice - sellingPrice) / basePrice) * 100;
+    return discount.round().toString();
+  }
 
   @override
   void dispose() {
@@ -83,32 +96,12 @@ class _AdminProductState extends State<AdminProduct> {
     nameController.dispose();
     subNameController.dispose();
     priceController.dispose();
-    discountController.dispose();
+    sellingPriceController.dispose();
     descriptionController.dispose();
     super.dispose();
   }
 
-  Future<bool> _requestImagePermission() async {
-    var status = await Permission.photos.request();
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-    }
-    if (status.isPermanentlyDenied) {
-      await openAppSettings();
-      return false;
-    }
-    return status.isGranted;
-  }
-
   Future<void> _pickImage() async {
-    final isGranted = await _requestImagePermission();
-    if (!isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permission to access photos is denied')),
-      );
-      return;
-    }
-
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -176,7 +169,7 @@ class _AdminProductState extends State<AdminProduct> {
                   subNameController.clear();
                   priceController.clear();
                   _selectedUnit = null;
-                  discountController.clear();
+                  sellingPriceController.clear();
                   descriptionController.clear();
                   _selectableQuantities = [];
                   quantityController.clear();
@@ -241,7 +234,18 @@ class _AdminProductState extends State<AdminProduct> {
         _selectedUnit = productData.unit!.toUpperCase();
       }
     }
-    discountController.text = productData.discountPercentage?.toString() ?? '';
+    final double base = (productData.basePrice ?? 0).toDouble();
+    final double disc = (productData.discountPercentage ?? 0).toDouble();
+    if (base > 0 && disc > 0) {
+      final double selling = base - (base * disc / 100);
+      sellingPriceController.text =
+          selling % 1 == 0 ? selling.toInt().toString() : selling.toStringAsFixed(2);
+    } else if (base > 0) {
+      sellingPriceController.text =
+          base % 1 == 0 ? base.toInt().toString() : base.toStringAsFixed(2);
+    } else {
+      sellingPriceController.text = '';
+    }
     descriptionController.text = productData.description ?? '';
     selectedCategoryId = productData.category?.id;
     networkImageUrls = List<String>.from(productData.images ?? []); // Added strict type-casting
@@ -280,7 +284,7 @@ class _AdminProductState extends State<AdminProduct> {
                           subNameController.clear();
                           priceController.clear();
                           _selectedUnit = null;
-                          discountController.clear();
+                          sellingPriceController.clear();
                           descriptionController.clear();
                           _selectableQuantities = [];
                           quantityController.clear();
@@ -402,15 +406,93 @@ class _AdminProductState extends State<AdminProduct> {
                   Row(
                     children: [
                       Expanded(
-                          child: _buildTextField(
-                              priceController, 'Price', 'Req',
-                              keyboardType: TextInputType.number)),
+                        child: _buildTextField(
+                          priceController,
+                          'MRP',
+                          'Req',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          onChanged: (_) => setStateDialog(() {}),
+                        ),
+                      ),
                       SizedBox(width: 8.w),
                       Expanded(
-                          child: _buildTextField(
-                              discountController, 'Disc%', 'Req',
-                              keyboardType: TextInputType.number)),
+                        child: _buildTextField(
+                          sellingPriceController,
+                          'Selling Price',
+                          'Req',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          onChanged: (_) => setStateDialog(() {}),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Req';
+                            }
+                            final selling = double.tryParse(value.trim());
+                            final base =
+                                double.tryParse(priceController.text.trim());
+                            if (selling == null) {
+                              return 'Invalid';
+                            }
+                            if (base != null && selling > base) {
+                              return 'Must be ≤ MRP';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     ],
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final base =
+                          double.tryParse(priceController.text.trim()) ?? 0.0;
+                      final selling =
+                          double.tryParse(sellingPriceController.text.trim()) ??
+                              0.0;
+                      if (base > 0 && selling > 0 && selling <= base) {
+                        final diff = base - selling;
+                        final percent = ((diff / base) * 100).round();
+                        if (percent > 0) {
+                          return Padding(
+                            padding: EdgeInsets.only(top: 6.h, bottom: 2.h),
+                            child: Row(
+                              children: [
+                                Icon(Icons.local_offer,
+                                    size: 15.sp, color: Colors.green[800]),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  '$percent% OFF (Save ₹${diff % 1 == 0 ? diff.toInt() : diff.toStringAsFixed(2)})',
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[800],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          return Padding(
+                            padding: EdgeInsets.only(top: 6.h, bottom: 2.h),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    size: 14.sp, color: Colors.grey[600]),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  'No Discount (0% OFF)',
+                                  style: TextStyle(
+                                      fontSize: 11.sp,
+                                      color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      }
+                      return const SizedBox.shrink();
+                    },
                   ),
                   SizedBox(height: 12.h),
                   DropdownButtonFormField<String>(
@@ -640,11 +722,14 @@ class _AdminProductState extends State<AdminProduct> {
   Widget _buildTextField(
       TextEditingController controller, String label, String validationMsg,
       {int maxLines = 1,
-      TextInputType keyboardType = TextInputType.multiline}) {
+      TextInputType keyboardType = TextInputType.multiline,
+      ValueChanged<String>? onChanged,
+      FormFieldValidator<String>? validator}) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
+      onChanged: onChanged,
       style: const TextStyle(color: Color(0xFF0A0909)),
       decoration: InputDecoration(
         labelText: label,
@@ -653,8 +738,9 @@ class _AdminProductState extends State<AdminProduct> {
         filled: true,
         fillColor: Colors.white,
       ),
-      validator: (value) =>
-          value == null || value.trim().isEmpty ? validationMsg : null,
+      validator: validator ??
+          (value) =>
+              value == null || value.trim().isEmpty ? validationMsg : null,
     );
   }
 
@@ -673,7 +759,7 @@ class _AdminProductState extends State<AdminProduct> {
             descriptionController.clear();
             priceController.clear();
             _selectedUnit = null;
-            discountController.clear();
+            sellingPriceController.clear();
             _isUploading = false;
             quantityController.clear();
             _isUploading = false;
@@ -722,10 +808,7 @@ class _AdminProductState extends State<AdminProduct> {
                           price: priceController.text.trim(),
                           unit: _selectedUnit!,
                           imageFile: _image!,
-                          discountPercentage: (double.tryParse(
-                                      discountController.text.trim()) ??
-                                  0.0)
-                              .toString(),
+                          discountPercentage: _calculateDiscountPercentage(),
                           selectableQuantities: _selectableQuantities,
                         ),
                       );
@@ -740,10 +823,7 @@ class _AdminProductState extends State<AdminProduct> {
                         price: priceController.text.trim(),
                         unit: _selectedUnit!,
                         categoryId: selectedCategoryId!,
-                        discountPercentage:
-                            (double.tryParse(discountController.text.trim()) ??
-                                    0.0)
-                                .toString(),
+                        discountPercentage: _calculateDiscountPercentage(),
                         imageFile: <dynamic>[
                           if (_image != null) _image,
                           if (networkImageUrls != null) ...networkImageUrls!
@@ -833,6 +913,164 @@ class _AdminProductState extends State<AdminProduct> {
     );
   }
 
+  Future<void> _exportProductsToExcel() async {
+    final productState = context.read<GetAllProductBloc>().state;
+    if (productState is! GetAllProductLoaded ||
+        (productState.getAllProduct.data == null ||
+            productState.getAllProduct.data!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No products available to export'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final products = productState.getAllProduct.data!;
+
+    // ValueNotifier to update progress without rebuilding the whole screen
+    final ValueNotifier<double> progressNotifier = ValueNotifier<double>(0.0);
+    final ValueNotifier<String> statusNotifier =
+        ValueNotifier<String>('Preparing products for export...');
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_AppConstants.dialogRadius),
+            ),
+            title: Row(
+              children: [
+                const Icon(Icons.table_chart_rounded, color: Colors.green),
+                SizedBox(width: 10.w),
+                Text(
+                  'Exporting Excel',
+                  style: TextStyle(
+                    color: _AppConstants.textColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ValueListenableBuilder<String>(
+                  valueListenable: statusNotifier,
+                  builder: (context, status, _) {
+                    return Text(
+                      status,
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13.sp,
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16.h),
+                ValueListenableBuilder<double>(
+                  valueListenable: progressNotifier,
+                  builder: (context, progress, _) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4.r),
+                          child: LinearProgressIndicator(
+                            value: progress > 0 ? progress : null,
+                            backgroundColor: Colors.white24,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.green),
+                            minHeight: 8.h,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        if (progress > 0)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '${(progress * 100).toInt()}%',
+                              style: TextStyle(
+                                color: _AppConstants.primaryColor,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      final File? exportedFile =
+          await ProductExcelExportService.exportProductsToExcel(
+        products: products,
+        onProgress: (current, total, message) {
+          progressNotifier.value = total > 0 ? (current / total) : 0.0;
+          statusNotifier.value = message;
+        },
+      );
+
+      // Dismiss dialog
+      if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (exportedFile != null && mounted) {
+        // Automatically open the exported Excel file
+        await ProductExcelExportService.openExcelFile(exportedFile.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF1B5E20),
+              duration: const Duration(seconds: 6),
+              content: Text(
+                'Excel exported successfully (${products.length} products)!',
+                style: const TextStyle(color: Colors.white),
+              ),
+              action: SnackBarAction(
+                label: 'Share',
+                textColor: _AppConstants.primaryColor,
+                onPressed: () {
+                  ProductExcelExportService.shareExcelFile(exportedFile.path);
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export Excel: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<DeleteProductBloc, DeleteProductState>(
@@ -868,44 +1106,84 @@ class _AdminProductState extends State<AdminProduct> {
                 SizedBox(height: 24.h),
                 _buildSearchBar(),
                 SizedBox(height: 24.h),
-                Align(
-                  alignment: Alignment.centerRight, // Add Product Button
-                  child: GestureDetector(
-                    onTap: () => _showAddProductDialog(context),
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: _AppConstants.primaryColor,
-                        borderRadius: BorderRadius.circular(24.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 4.r,
-                            offset: Offset(0, 2.h),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add_circle_outline_outlined,
-                              color: Colors.black, size: 20.w),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'Add Products',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 14.sp,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Export Excel Button
+                    GestureDetector(
+                      onTap: _exportProductsToExcel,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 14.w, vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B5E20),
+                          borderRadius: BorderRadius.circular(24.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4.r,
+                              offset: Offset(0, 2.h),
                             ),
-                            semanticsLabel: 'Add products button',
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.file_download_outlined,
+                                color: Colors.white, size: 20.w),
+                            SizedBox(width: 6.w),
+                            Text(
+                              'Export Excel',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13.sp,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                              ),
+                              semanticsLabel: 'Export products to excel button',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                    // Add Products Button
+                    GestureDetector(
+                      onTap: () => _showAddProductDialog(context),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 14.w, vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: _AppConstants.primaryColor,
+                          borderRadius: BorderRadius.circular(24.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_circle_outline_outlined,
+                                color: Colors.black, size: 20.w),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Add Products',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.sp,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                              ),
+                              semanticsLabel: 'Add products button',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 16.h),
                 Expanded(child: _buildCategorizedProductList()),

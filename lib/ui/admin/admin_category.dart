@@ -77,26 +77,7 @@ class _AdminCategoryState extends State<AdminCategory> {
     });
   }
 
-  Future<bool> _requestImagePermission() async {
-    final status = await Permission.photos.request();
-    if (!status.isGranted) {
-      final storageStatus = await Permission.storage.request();
-      if (storageStatus.isPermanentlyDenied || status.isPermanentlyDenied) {
-        await openAppSettings();
-        return false;
-      }
-      return storageStatus.isGranted;
-    }
-    return true;
-  }
-
   Future<void> _pickImage(StateSetter setDialogState) async {
-    final isGranted = await _requestImagePermission();
-    if (!isGranted) {
-      _showSnackBar('Permission to access photos is denied', Colors.red);
-      return;
-    }
-
     try {
       final pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,

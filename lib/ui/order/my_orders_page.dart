@@ -106,7 +106,7 @@ class _MyOrdersPageState extends State<MyOrdersPage>
           } else if (filterStatus == "Cancelled") {
             orders = orders
                 .where((order) =>
-                    order.orderStatus?.toLowerCase() == 'cancelled')
+                    (order.orderStatus ?? '').toLowerCase().contains('cancel'))
                 .toList();
           }
           // "All" includes everything
