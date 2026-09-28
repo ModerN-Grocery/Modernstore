@@ -13,6 +13,7 @@ import 'package:modern_grocery/bloc/upload_image/upload_image_bloc.dart';
 import 'package:modern_grocery/repositery/model/user/getUserDlvAddresses.dart';
 import 'package:modern_grocery/repositery/model/user/getUserProfile.dart';
 import 'package:modern_grocery/services/language_service.dart';
+import '../../widgets/utils.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -122,18 +123,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           BlocListener<EditProfileBloc, EditProfileState>(
             listener: (context, state) {
               if (state is EditProfileSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(state.model.message ??
-                          'Profile updated successfully')),
-                );
+                Utils.showToast(state.model.message ?? 'Profile updated successfully');
                 // Refresh user profile to show updated data
                 context.read<UserprofileBloc>().add(fetchUserprofile());
                 Navigator.pop(context);
               } else if (state is EditProfileFailure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.error)),
-                );
+                Utils.showToast(state.error);
               }
             },
           ),
@@ -152,15 +147,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _uploadedImageUrl = state.model.data?.url; 
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image uploaded successfully')),
-      );
+      Utils.showToast('Image uploaded successfully');
     }
     if (state is UploadImageFailure) {
       setState(() { _isUploadingImage = false; });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error)),
-      );
+      Utils.showToast(state.error);
     }
   },
 ),

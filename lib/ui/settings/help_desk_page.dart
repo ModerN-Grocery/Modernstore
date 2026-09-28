@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'package:modern_grocery/services/language_service.dart'; // ✅ Add this import
+import 'package:modern_grocery/services/language_service.dart';
+import 'package:modern_grocery/services/support_config_service.dart';
+import '../../widgets/utils.dart';
 
 class HelpDeskPage extends StatefulWidget {
   const HelpDeskPage({super.key});
@@ -12,15 +16,30 @@ class HelpDeskPage extends StatefulWidget {
 }
 
 class _HelpDeskPageState extends State<HelpDeskPage> {
-  late LanguageService languageService; // ✅ Declare service
+  late LanguageService languageService;
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
 
+  SupportConfig _config = SupportConfigService.currentConfig;
+  bool _isLoadingConfig = false;
+
   @override
   void initState() {
     super.initState();
-    languageService = LanguageService(); // ✅ Initialize service
+    languageService = LanguageService();
+    _fetchSupportConfig();
+  }
+
+  Future<void> _fetchSupportConfig() async {
+    setState(() => _isLoadingConfig = true);
+    final config = await SupportConfigService.fetchSupportConfig();
+    if (mounted) {
+      setState(() {
+        _config = config;
+        _isLoadingConfig = false;
+      });
+    }
   }
 
   @override
@@ -31,33 +50,81 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
     super.dispose();
   }
 
-  Future<void> _launchEmail() async {
-    _showSnackBar(
-        '${languageService.getString('email')}: support@modernstore.com\n'
-        '${languageService.getString('subject')}: ${_subjectController.text}\n'
-        '${languageService.getString('message')}: ${_messageController.text}');
+  Future<void> _launchEmail({String? subject, String? body}) async {
+    final email = _config.email;
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {
+        if (subject != null && subject.isNotEmpty) 'subject': subject,
+        if (body != null && body.isNotEmpty) 'body': body,
+      },
+    );
+
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
+      } else {
+        await Clipboard.setData(ClipboardData(text: email));
+        Utils.showToast('Email copied: $email');
+      }
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: email));
+      Utils.showToast('Email copied: $email');
+    }
   }
 
   Future<void> _launchPhone() async {
-    _showSnackBar(
-        '${languageService.getString('phone')}: +1 (234) 567-890\n'
-        '${languageService.getString('tap_to_call')}');
+    final phone = _config.callNumber;
+    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    final Uri phoneLaunchUri = Uri(scheme: 'tel', path: cleanPhone);
+
+    try {
+      if (await canLaunchUrl(phoneLaunchUri)) {
+        await launchUrl(phoneLaunchUri, mode: LaunchMode.externalApplication);
+      } else {
+        await Clipboard.setData(ClipboardData(text: phone));
+        Utils.showToast('Phone copied: $phone');
+      }
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: phone));
+      Utils.showToast('Phone copied: $phone');
+    }
   }
 
   Future<void> _launchWhatsApp() async {
-    _showSnackBar(
-        '${languageService.getString('whatsapp')}: +1 (234) 567-890\n'
-        '${languageService.getString('tap_to_open_whatsapp')}');
+    final phone = _config.whatsapp;
+    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    final Uri whatsappUri = Uri.parse(
+      'https://wa.me/$cleanPhone?text=${Uri.encodeComponent('Hello Modern Store Support,')}',
+    );
+
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      } else {
+        await Clipboard.setData(ClipboardData(text: phone));
+        Utils.showToast('WhatsApp number copied: $phone');
+      }
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: phone));
+      Utils.showToast('WhatsApp number copied: $phone');
+    }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFFF5E9B5),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  Future<void> _sendMessage() async {
+    final subject = _subjectController.text.trim();
+    final message = _messageController.text.trim();
+    final senderEmail = _emailController.text.trim();
+
+    if (subject.isEmpty && message.isEmpty) {
+      Utils.showToast('Please enter subject and message');
+      return;
+    }
+
+    final body =
+        '${senderEmail.isNotEmpty ? "From: $senderEmail\n\n" : ""}$message';
+    await _launchEmail(subject: subject, body: body);
   }
 
   @override
@@ -72,13 +139,29 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          languageService.getString('help_support'), // "Help & Support"
+          languageService.getString('help_support'),
           style: GoogleFonts.poppins(
             color: const Color(0xFFF5E9B5),
             fontSize: 20.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          if (_isLoadingConfig)
+            const Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFFF5E9B5),
+                  ),
+                ),
+              ),
+            ),
+        ],
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -91,19 +174,19 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
               _buildContactCard(
                 icon: Icons.email,
                 title: languageService.getString('email_support'),
-                subtitle: 'support@modernstore.com',
-                onTap: _launchEmail,
+                subtitle: _config.email,
+                onTap: () => _launchEmail(),
               ),
               _buildContactCard(
                 icon: Icons.phone,
                 title: languageService.getString('phone_support'),
-                subtitle: '+1 (234) 567-890',
+                subtitle: _config.callNumber,
                 onTap: _launchPhone,
               ),
               _buildContactCard(
                 icon: Icons.chat,
                 title: 'WhatsApp',
-                subtitle: languageService.getString('chat_with_us'),
+                subtitle: _config.whatsapp,
                 onTap: _launchWhatsApp,
               ),
             ]),
@@ -222,7 +305,7 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _launchEmail,
+                        onPressed: _sendMessage,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFF5E9B5),
                           padding: EdgeInsets.symmetric(vertical: 15.h),
@@ -295,7 +378,7 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
         subtitle: Text(
           subtitle,
           style: GoogleFonts.inter(
-            color: const Color(0xFFFCF8E8).withOpacity(0.7),
+            color: const Color(0xFFFCF8E8).withValues(alpha: 0.7),
             fontSize: 14.sp,
           ),
         ),
@@ -326,21 +409,21 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
+        iconColor: const Color(0xFFF5E9B5),
+        collapsedIconColor: const Color(0xFFF5E9B5),
         children: [
           Padding(
             padding: EdgeInsets.all(16.w),
             child: Text(
               answer,
               style: GoogleFonts.inter(
-                color: const Color(0xFFFCF8E8).withOpacity(0.8),
+                color: const Color(0xFFFCF8E8).withValues(alpha: 0.8),
                 fontSize: 14.sp,
                 height: 1.5,
               ),
             ),
           ),
         ],
-        iconColor: const Color(0xFFF5E9B5),
-        collapsedIconColor: const Color(0xFFF5E9B5),
       ),
     );
   }

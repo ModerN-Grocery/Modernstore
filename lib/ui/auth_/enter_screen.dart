@@ -13,6 +13,7 @@ import 'package:modern_grocery/widgets/app_color.dart';
 import 'package:modern_grocery/widgets/fontstyle.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../widgets/utils.dart';
 
 class EnterScreen extends StatefulWidget {
   const EnterScreen({super.key});
@@ -83,17 +84,8 @@ class _EnterScreenState extends State<EnterScreen> {
                 isLoading = false;
               });
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  // --- REFACTORED SNACKBAR ---
-                  content: Text(
-                    languageService.getString(
-                      'login_error',
-                    ),
-                    style: fontStyles.errorstyle2, // White text
-                  ),
-                  backgroundColor: appColor.errorColor, // Use appColor
-                ),
+              Utils.showToast(
+                languageService.getString('login_error'),
               );
             } else if (state is SendOtpLoading) {
               // --- FIX: Start loading ---
@@ -436,15 +428,9 @@ class _EnterScreenState extends State<EnterScreen> {
                               ? null // Disable button when loading
                               : () {
                                   if (phoneController.text.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          languageService.getString(
-                                            'please_enter_phone',
-                                          ),
-                                          style: fontStyles.errorstyle2,
-                                        ),
-                                        backgroundColor: appColor.errorColor,
+                                    Utils.showToast(
+                                      languageService.getString(
+                                        'please_enter_phone',
                                       ),
                                     );
                                     return;

@@ -41,7 +41,8 @@ class AboutUsPage extends StatelessWidget {
                     height: 120.h,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(60.r),
-                      border: Border.all(color: const Color(0xFFF5E9B5), width: 2),
+                      border:
+                          Border.all(color: const Color(0xFFF5E9B5), width: 2),
                     ),
                     child: const Icon(
                       Icons.store,
@@ -155,17 +156,17 @@ class AboutUsPage extends StatelessWidget {
                       _buildContactInfo(
                         '📧',
                         languageService.getString('email'),
-                        'support@modernstore.com',
+                        'modernstoreputhupparamba@gmail.com',
                       ),
                       _buildContactInfo(
                         '📞',
                         languageService.getString('phone'),
-                        '+1 (234) 567-890',
+                        '+91 8139089227',
                       ),
                       _buildContactInfo(
                         '📍',
                         languageService.getString('address'),
-                        '123 Modern Street, City, State 12345',
+                        'Puthuparamba Rd, Kottakkal, Puthuparambu Town, Keralam 676501',
                       ),
                     ],
                   ),

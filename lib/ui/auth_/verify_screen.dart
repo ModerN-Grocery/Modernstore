@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../bottom_navigationbar.dart';
+import '../../widgets/utils.dart';
 
 class VerifyScreen extends StatefulWidget {
   final String phoneNo;
@@ -71,13 +72,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
         Provider.of<LanguageService>(context, listen: false);
 
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            languageService.getString('please_enter_complete_otp'),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      Utils.showToast(
+        languageService.getString('please_enter_complete_otp'),
       );
       return;
     }
@@ -147,13 +143,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                   // User app flavor: ONLY regular users allowed! Block admin accounts.
                   if (isAdmin) {
                     await prefs.clear();
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Access Denied: Admin accounts cannot log into the User App."),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    Utils.showToast("Access Denied: Admin accounts cannot log into the User App.");
                   } else {
                     Navigator.pushReplacement(
                       context,
@@ -175,13 +165,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     );
                   } else {
                     await prefs.clear();
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Access Denied: Only Admin accounts can log into the Admin App."),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    Utils.showToast("Access Denied: Only Admin accounts can log into the Admin App.");
                   }
                 } else {
                   // Fallback for default single app
@@ -201,25 +185,13 @@ class _VerifyScreenState extends State<VerifyScreen> {
                   );
                 }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text("Failed to save data locally. Please try again."),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                Utils.showToast("Failed to save data locally. Please try again.");
               }
             }
 
             if (state is loginBlocError) {
               setState(() => isLoading = false);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Failed verification"),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              Utils.showToast("Failed verification");
 
               for (var controller in otpControllers) {
                 controller.clear();

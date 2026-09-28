@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'my_address_page.dart';
+import '../../widgets/utils.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -158,31 +159,11 @@ Future<void> _logoutUser(BuildContext context) async {
                     languageService.getString("personal_activity"), [
                   buildListTile(Icons.account_balance_wallet,
                       languageService.getString("wallet_points"), onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          languageService.getString("wallet_coming"),
-                          style: GoogleFonts.poppins(
-                            color: Color(0x80000000),
-                          ),
-                        ),
-                        backgroundColor: const Color(0xFFF5E9B5),
-                      ),
-                    );
+                    Utils.showToast(languageService.getString("wallet_coming"));
                   }),
                   buildListTile(Icons.rate_review,
                       languageService.getString("customer_review"), onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          languageService.getString("review_coming"),
-                          style: GoogleFonts.poppins(
-                            color: Color(0x80000000),
-                          ),
-                        ),
-                        backgroundColor: const Color(0xFFF5E9B5),
-                      ),
-                    );
+                    Utils.showToast(languageService.getString("review_coming"));
                   }),
                 ]),
                 buildSection(
@@ -247,31 +228,11 @@ Future<void> _logoutUser(BuildContext context) async {
                   }),
                   buildListTile(Icons.description,
                       languageService.getString("terms_conditions"), onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          languageService.getString("terms_coming"),
-                          style: GoogleFonts.poppins(
-                            color: Color(0x80000000),
-                          ),
-                        ),
-                        backgroundColor: const Color(0xFFF5E9B5),
-                      ),
-                    );
+                    Utils.showToast(languageService.getString("terms_coming"));
                   }),
                   buildListTile(Icons.privacy_tip,
                       languageService.getString("privacy_policy"), onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          languageService.getString("privacy_coming"),
-                          style: GoogleFonts.poppins(
-                            color: Color(0x80000000),
-                          ),
-                        ),
-                        backgroundColor: const Color(0xFFF5E9B5),
-                      ),
-                    );
+                    Utils.showToast(languageService.getString("privacy_coming"));
                   }),
                 ]),
               ],

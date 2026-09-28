@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:modern_grocery/services/language_service.dart';
 import 'package:modern_grocery/localization/app_localizations.dart';
+import '../../widgets/utils.dart';
 
 class LanguagePage extends StatefulWidget {
   const LanguagePage({super.key});
@@ -25,13 +26,8 @@ class _LanguagePageState extends State<LanguagePage> {
     await languageService.changeLanguage(languageCode);
 
     // Show confirmation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            '${AppLocalizations.getString('language_changed', languageCode)} $languageName'),
-        backgroundColor: const Color(0xFFF5E9B5),
-        duration: const Duration(seconds: 2),
-      ),
+    Utils.showToast(
+      '${AppLocalizations.getString('language_changed', languageCode)} $languageName',
     );
   }
 

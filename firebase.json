@@ -1,0 +1,38 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "moderern-store",
+          "appId": "1:862468269957:android:759c4c54d4ee0b0a1106ec",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "moderern-store",
+          "configurations": {
+            "android": "1:862468269957:android:759c4c54d4ee0b0a1106ec",
+            "ios": "1:862468269957:ios:d72936e8f7c2ce0c1106ec",
+            "macos": "1:862468269957:ios:d72936e8f7c2ce0c1106ec",
+            "web": "1:862468269957:web:68734769b6c7d7de1106ec",
+            "windows": "1:862468269957:web:de426756518c904d1106ec"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

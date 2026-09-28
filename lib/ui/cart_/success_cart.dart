@@ -35,34 +35,47 @@ class _SuccessCartState extends State<SuccessCart>
 
   void _startAnimation() async {
     // Very very very slow blink animation (3 blinks) - only shadow
+    try {
+      if (!mounted) return;
+      // First blink - very slow
+      await _blinkController.forward();
+      if (!mounted) return;
+      await _blinkController.reverse();
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 800));
 
-    // First blink - very slow
-    await _blinkController.forward();
-    await _blinkController.reverse();
-    await Future.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+      // Second blink - very slow
+      await _blinkController.forward();
+      if (!mounted) return;
+      await _blinkController.reverse();
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 800));
 
-    // Second blink - very slow
-    await _blinkController.forward();
-    await _blinkController.reverse();
-    await Future.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+      // Third blink - very slow
+      await _blinkController.forward();
+      if (!mounted) return;
+      await _blinkController.reverse();
 
-    // Third blink - very slow
-    await _blinkController.forward();
-    await _blinkController.reverse();
+      if (!mounted) return;
+      // Wait before switching to second image
+      await Future.delayed(const Duration(milliseconds: 1000));
 
-    // Wait before switching to second image
-    await Future.delayed(const Duration(milliseconds: 1000));
-
-    // Switch to second image
-    if (mounted) {
-      setState(() {
-        _showSecondImage = true;
-      });
+      // Switch to second image
+      if (mounted) {
+        setState(() {
+          _showSecondImage = true;
+        });
+      }
+    } catch (_) {
+      // Ignored if screen was popped and controller disposed
     }
   }
 
   @override
   void dispose() {
+    _blinkController.stop();
     _blinkController.dispose();
     super.dispose();
   }

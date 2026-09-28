@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../widgets/utils.dart';
 import 'package:modern_grocery/bloc/Banner_/CreateBanner_bloc/create_banner_bloc.dart';
 import 'package:modern_grocery/bloc/Categories_/GetAllCategories/get_all_categories_bloc.dart';
 import 'package:modern_grocery/widgets/app_color.dart';
@@ -51,9 +52,7 @@ Future<void> _saveImage(BuildContext context) async {
   if (!_formKey.currentState!.validate()) return;
 
   if (_selectedType == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please select type')),
-    );
+    Utils.showToast('Please select type');
     return;
   }
 
@@ -73,9 +72,7 @@ Future<void> _saveImage(BuildContext context) async {
 
   final file = File(widget.imagePath);
   if (!file.existsSync()) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Error: Image file not found')),
-    );
+    Utils.showToast('Error: Image file not found');
     return;
   }
 
@@ -239,20 +236,12 @@ Future<void> _saveImage(BuildContext context) async {
             setState(() => _isUploading = true);
           } else if (state is CreateBannerLoaded) {
             setState(() => _isUploading = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Banner saved successfully!'),
-                  backgroundColor: Colors.green),
-            );
+            Utils.showToast('Banner saved successfully!');
             context.read<GetAllBannerBloc>().add(FetchGetAllBannerEvent());
             Navigator.of(context).pop();
           } else if (state is CreateBannerError) {
             setState(() => _isUploading = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text('Error: ${state.message}'),
-                  backgroundColor: Colors.blue),
-            );
+            Utils.showToast('Error: ${state.message}');
           }
         },
         child: SingleChildScrollView(

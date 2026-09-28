@@ -40,6 +40,9 @@ import 'package:modern_grocery/repositery/api/Cart/updateCart_api.dart';
 import 'package:modern_grocery/bloc/upload_image/upload_image_bloc.dart';
 import 'package:modern_grocery/bloc/Orders/Cancel_order/cancel_order_bloc.dart';
 import 'package:modern_grocery/ui/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:modern_grocery/firebase_options.dart';
+import 'package:modern_grocery/services/notification_service.dart';
 import 'package:provider/provider.dart';
 
 import 'bloc/Dashboard/dashboard_bloc.dart';
@@ -58,7 +61,12 @@ String basePath = "http://200.234.34.162:4055/api";
 // String basePath = "https://modern-store-backend.onrender.com/api";
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await NotificationService.instance.init();
   runApp(const MyApp());
 }
 
@@ -196,7 +204,7 @@ class MyApp extends StatelessWidget {
                   BlocProvider(
                     create: (context) => UploadImageBloc(),
                   ),
-                   BlocProvider(
+                  BlocProvider(
                     create: (context) => SendOtpBloc(),
                   ),
                   BlocProvider(
@@ -214,6 +222,18 @@ class MyApp extends StatelessWidget {
                   title: 'Modern Grocery',
                   theme: ThemeData(
                     useMaterial3: true,
+                    snackBarTheme: SnackBarThemeData(
+                      backgroundColor: Colors.white,
+                      contentTextStyle: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                   locale: languageService.locale,
                   localizationsDelegates: const [

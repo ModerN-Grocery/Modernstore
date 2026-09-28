@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../bloc/Categories_/Edit_category/edit_category_bloc.dart';
+import '../../widgets/utils.dart';
 
 // Assuming Category is a class within GetAllCategoriesModel
 class Category {
@@ -114,10 +115,8 @@ class _AdminCategoryState extends State<AdminCategory> {
     }
   }
 
-  void _showSnackBar(String message, Color backgroundColor) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: backgroundColor),
-    );
+  void _showSnackBar(String message, [Color? backgroundColor]) {
+    Utils.showToast(message);
   }
 
   void _resetForm() {

@@ -6,6 +6,7 @@ import 'package:modern_grocery/bloc/delivery_/addDeliveryAddress/add_delivery_ad
 import 'package:modern_grocery/services/language_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../widgets/utils.dart';
 
 class AddNewAddressPage extends StatefulWidget {
   const AddNewAddressPage({super.key});
@@ -40,26 +41,10 @@ class _AddNewAddressPageState extends State<AddNewAddressPage> {
           return BlocConsumer<AddDeliveryAddressBloc, AddDeliveryAddressState>(
             listener: (context, state) {
               if (state is AddDeliveryAddressLoaded) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Address saved successfully',
-                      style: GoogleFonts.poppins(color: Colors.white),
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                Utils.showToast('Address saved successfully');
                 Navigator.pop(context);
               } else if (state is AddDeliveryAddressError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Failed to save address',
-                      style: GoogleFonts.poppins(color: Colors.white),
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                Utils.showToast('Failed to save address');
               }
             },
             builder: (context, state) {

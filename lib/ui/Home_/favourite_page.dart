@@ -15,6 +15,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../bloc/cart_/addCart_bloc/add_cart_bloc.dart';
 import '../../localization/app_localizations.dart';
+import '../../widgets/utils.dart';
 
 class FavouritePage extends StatefulWidget {
   final VoidCallback? onFavTap;
@@ -65,32 +66,20 @@ class _FavouritePageState extends State<FavouritePage> {
                   Navigator.of(context).pop();
                 });
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      state.response.message.isNotEmpty
-                          ? state.response.message
-                          : AppLocalizations.getString(
-                              'failed_add_to_cart',
-                              lang,
-                            ),
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
+                Utils.showToast(
+                  state.response.message.isNotEmpty
+                      ? state.response.message
+                      : AppLocalizations.getString(
+                          'failed_add_to_cart',
+                          lang,
+                        ),
                 );
               }
             } else if (state is AddCartError) {
                setState(() {
                   _isLoading = false;
                 });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Add to cart failed: ${state.message}',
-                  ),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              Utils.showToast('Add to cart failed: ${state.message}');
             }
 
 

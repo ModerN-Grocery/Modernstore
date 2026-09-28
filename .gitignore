@@ -46,3 +46,5 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+# Firebase service account (sensitive - never commit)
+assets/service_account.json

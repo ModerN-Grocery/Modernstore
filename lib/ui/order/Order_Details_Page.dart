@@ -6,6 +6,7 @@ import 'package:modern_grocery/bloc/Orders/Cancel_order/cancel_order_bloc.dart';
 import 'package:modern_grocery/repositery/model/Orders/Get_user_order_Model.dart';
 import 'package:modern_grocery/services/language_service.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/utils.dart';
 
 class OrderDetailsPage extends StatelessWidget {
   final Orders order;
@@ -27,26 +28,14 @@ class OrderDetailsPage extends StatelessWidget {
       } else if (state is CancelOrderLoaded) {
         Navigator.pop(context); // Close loading dialog
         if (state.cancelOrderModel.success == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.cancelOrderModel.message ??
-                  "Order cancelled successfully"),
-              backgroundColor: Colors.green,
-            ),
-          );
+          Utils.showToast(state.cancelOrderModel.message ?? "Order cancelled successfully");
           Navigator.pop(context); // Return to previous screen
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(state.cancelOrderModel.message ??
-                    "Failed to cancel order")),
-          );
+          Utils.showToast(state.cancelOrderModel.message ?? "Failed to cancel order");
         }
       } else if (state is CancelOrderError) {
         Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message)),
-        );
+        Utils.showToast(state.message);
       }
     }, child: Consumer<LanguageService>(
       builder: (context, languageService, child) {
@@ -341,10 +330,7 @@ class OrderDetailsPage extends StatelessWidget {
                     String finalReason = selectedReason;
                     if (selectedReason == "Other") {
                       if (otherReasonController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Please enter a reason")),
-                        );
+                        Utils.showToast("Please enter a reason");
                         return;
                       }
                       finalReason = otherReasonController.text.trim();

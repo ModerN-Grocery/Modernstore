@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../bloc/wishList/remove towish/removetowishlist_bloc.dart';
 import 'Product_list.dart';
+import '../../widgets/utils.dart';
 
 class ProductDetails extends StatefulWidget {
   final String productId;
@@ -62,29 +63,17 @@ class _ProductDetailsState extends State<ProductDetails> {
                       Navigator.of(context).pop();
                     });
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          state.response.message.isNotEmpty
-                              ? state.response.message
-                              : AppLocalizations.getString(
-                                  'failed_add_to_cart',
-                                  lang,
-                                ),
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
+                    Utils.showToast(
+                      state.response.message.isNotEmpty
+                          ? state.response.message
+                          : AppLocalizations.getString(
+                              'failed_add_to_cart',
+                              lang,
+                            ),
                     );
                   }
                 } else if (state is AddCartError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Add to cart failed: ${state.message}',
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  Utils.showToast('Add to cart failed: ${state.message}');
                 }
               },
             ),
@@ -142,7 +131,8 @@ class _ProductDetailsState extends State<ProductDetails> {
                     discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
 
                 final bool hasDiscount = discount > 0;
-                final selectableQuantities = product.data?.selectableQuantities;
+                final selectableQuantities =
+                    product.data?.selectableQuantities?.toSet().toList();
                 final bool hasSelectableQuantities =
                     selectableQuantities != null &&
                         selectableQuantities.isNotEmpty;
@@ -159,15 +149,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                       BlocListener<AddToWishlistBloc, AddToWishlistState>(
                         listener: (context, wishlistState) {
                           if (wishlistState is AddToWishlistLoaded) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.getString(
-                                    'added_to_wishlist',
-                                    lang,
-                                  ),
-                                ),
-                                duration: const Duration(seconds: 2),
+                            Utils.showToast(
+                              AppLocalizations.getString(
+                                'added_to_wishlist',
+                                lang,
                               ),
                             );
                             context
@@ -179,15 +164,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                       BlocListener<RemovetowishlistBloc, RemovetowishlistState>(
                         listener: (context, wishlistState) {
                           if (wishlistState is RemovetowishlistLoaded) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.getString(
-                                    'removed_from_wishlist',
-                                    lang,
-                                  ),
-                                ),
-                                duration: const Duration(seconds: 2),
+                            Utils.showToast(
+                              AppLocalizations.getString(
+                                'removed_from_wishlist',
+                                lang,
                               ),
                             );
                             context
@@ -727,12 +707,17 @@ class _ProductDetailsState extends State<ProductDetails> {
   }
 
   Widget _buildQuantityDropdown(List<double> quantities, String? unit) {
+    final uniqueQuantities = quantities.toSet().toList();
+    if (uniqueQuantities.isEmpty) return const SizedBox.shrink();
+
     return ValueListenableBuilder<num>(
       valueListenable: _quantityNotifier,
       builder: (context, selectedQuantity, child) {
         final doubleValue = selectedQuantity.toDouble();
         // Ensure the dropdown value exactly matches one of the available options to prevent assertion errors
-        final actualValue = quantities.contains(doubleValue) ? doubleValue : quantities.first;
+        final actualValue = uniqueQuantities.contains(doubleValue)
+            ? doubleValue
+            : uniqueQuantities.first;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
@@ -742,7 +727,7 @@ class _ProductDetailsState extends State<ProductDetails> {
           ),
           child: DropdownButton<double>(
             value: actualValue,
-            items: quantities.map((quantity) {
+            items: uniqueQuantities.map((quantity) {
               return DropdownMenuItem<double>(
                 value: quantity,
                 child: Text(

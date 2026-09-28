@@ -1,0 +1,67 @@
+﻿{
+  "project_info": {
+    "project_number": "862468269957",
+    "project_id": "moderern-store",
+    "storage_bucket": "moderern-store.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862468269957:android:759c4c54d4ee0b0a1106ec",
+        "android_client_info": {
+          "package_name": "com.moderngrocery.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKxQb9HLqTGeEYHFicAo6bKOY6gkjdp1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862468269957:android:759c4c54d4ee0b0a1106ec",
+        "android_client_info": {
+          "package_name": "com.moderngrocery.app.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKxQb9HLqTGeEYHFicAo6bKOY6gkjdp1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862468269957:android:759c4c54d4ee0b0a1106ec",
+        "android_client_info": {
+          "package_name": "com.moderngrocery.app.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKxQb9HLqTGeEYHFicAo6bKOY6gkjdp1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

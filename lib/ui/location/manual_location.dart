@@ -9,6 +9,7 @@ import 'package:modern_grocery/services/language_service.dart';
 import 'package:modern_grocery/ui/bottom_navigationbar.dart';
 import 'package:modern_grocery/ui/location/your_location.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/utils.dart';
 
 class ManualLocation extends StatefulWidget {
   const ManualLocation({super.key});
@@ -85,14 +86,7 @@ class _ManualLocationState extends State<ManualLocation> {
   }
 
   void _showSnack(String message, {String? actionLabel, VoidCallback? action}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        action: actionLabel != null
-            ? SnackBarAction(label: actionLabel, onPressed: action!)
-            : null,
-      ),
-    );
+    Utils.showToast(message);
   }
 
   @override
@@ -193,33 +187,36 @@ class _ManualLocationState extends State<ManualLocation> {
   }
 
   Widget _buildRadioTile({required String value, required String title}) {
-    return Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+    return Material(
+      color: const Color(0xFF1C1C1C),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
+        side: BorderSide(
           color: selectedAddressType == value
               ? const Color(0xFFF5E9B5)
               : const Color(0xFFFCF8E8),
           width: 1.5,
         ),
       ),
-      child: RadioListTile<String>(
-        value: value,
-        groupValue: selectedAddressType,
-        onChanged: (val) {
-          setState(() {
-            selectedAddressType = val!;
-          });
-        },
-        activeColor: const Color(0xFFF5E9B5),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(
-              color: const Color(0xFFFCF8E8), fontSize: 14.sp),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: EdgeInsets.all(12.w),
+        child: RadioListTile<String>(
+          value: value,
+          groupValue: selectedAddressType,
+          onChanged: (val) {
+            setState(() {
+              selectedAddressType = val!;
+            });
+          },
+          activeColor: const Color(0xFFF5E9B5),
+          title: Text(
+            title,
+            style: GoogleFonts.poppins(
+                color: const Color(0xFFFCF8E8), fontSize: 14.sp),
+          ),
+          contentPadding: EdgeInsets.zero,
         ),
-        contentPadding: EdgeInsets.zero,
       ),
     );
   }

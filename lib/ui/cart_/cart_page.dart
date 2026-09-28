@@ -13,6 +13,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../bloc/cart_/Update_cart/update_cart_bloc.dart';
 import '../../repositery/model/Cart/getAllUserCart_model.dart';
 import '../../bloc/cart_/removev cart item/remove_cart_item_bloc.dart';
+import '../../widgets/utils.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -94,12 +95,7 @@ class _CartPageState extends State<CartPage> {
                         .read<GetAllUserCartBloc>()
                         .add(fetchGetAllUserCartEvent());
                   } else if (state is UpdateCartError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    Utils.showToast(state.message);
                   }
                 },
               ),
@@ -111,12 +107,7 @@ class _CartPageState extends State<CartPage> {
                         .read<GetAllUserCartBloc>()
                         .add(fetchGetAllUserCartEvent());
                   } else if (state is RemoveCartItemFailure) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.error),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    Utils.showToast(state.error);
                   }
                 },
               ),

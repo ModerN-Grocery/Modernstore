@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../widgets/utils.dart';
 
 import 'package:modern_grocery/bloc/Product_/get_all_product/get_all_product_bloc.dart';
 import 'package:modern_grocery/bloc/Stocks/GetAll_Inventory/get_all_stock_bloc.dart';
@@ -56,23 +57,13 @@ class _AddStockPageState extends State<AddStockPage> {
     // The logic remains the same for both add and edit, as we are "adding" stock quantity.
     if (_formKey.currentState!.validate()) {
       if (_selectedProduct == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a product.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        Utils.showToast('Please select a product.');
         return;
       }
 
       final quantity = int.tryParse(_quantityController.text);
       if (quantity == null || quantity <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid quantity.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        Utils.showToast('Please enter a valid quantity.');
         return;
       }
 
@@ -102,24 +93,12 @@ class _AddStockPageState extends State<AddStockPage> {
             setState(() => _isSaving = true);
           } else if (state is AddStockSuccess) {
             setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Stock updated successfully!',
-                ),
-                backgroundColor: Colors.green,
-              ),
-            );
+            Utils.showToast('Stock updated successfully!');
             context.read<GetAllStockBloc>().add(FetchAllStock());
             Navigator.of(context).pop();
           } else if (state is AddStockFailure) {
             setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to add stock: ${state.error}'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            Utils.showToast('Failed to add stock: ${state.error}');
           }
         },
         child: SingleChildScrollView(

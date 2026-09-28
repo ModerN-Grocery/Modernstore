@@ -15,6 +15,7 @@ import '../../repositery/api/User/getAllUsers_api.dart';
 import '../../repositery/model/Orders/getAllOrders_model.dart';
 import '../../repositery/model/login_model.dart';
 import 'admin_order_details_page.dart';
+import '../../widgets/utils.dart';
 
 /// Unified model for a customer/user in the admin dashboard
 class AdminCustomer {
@@ -363,11 +364,7 @@ class _AdminCustomersPageState extends State<AdminCustomersPage> {
 
   Future<void> _exportCustomersToExcel(List<AdminCustomer> customers) async {
     if (customers.isEmpty) {
-      Fluttertoast.showToast(
-        msg: "No users to export",
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
+      Utils.showToast("No users to export");
       return;
     }
 
@@ -487,20 +484,12 @@ class _AdminCustomersPageState extends State<AdminCustomersPage> {
       await file.writeAsBytes(bytes, flush: true);
 
       if (mounted) {
-        Fluttertoast.showToast(
-          msg: "Users list exported successfully!",
-          backgroundColor: const Color(0xFF1B5E20),
-          textColor: Colors.white,
-        );
+        Utils.showToast("Users list exported successfully!");
         await OpenFilex.open(file.path);
       }
     } catch (e) {
       if (mounted) {
-        Fluttertoast.showToast(
-          msg: "Failed to export Excel: $e",
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
+        Utils.showToast("Failed to export Excel: $e");
       }
     } finally {
       if (mounted) {
@@ -641,12 +630,7 @@ class _AdminCustomersPageState extends State<AdminCustomersPage> {
                                       onPressed: () {
                                         Clipboard.setData(
                                             ClipboardData(text: customer.phone));
-                                        Fluttertoast.showToast(
-                                          msg: "Phone number copied!",
-                                          backgroundColor:
-                                              const Color(0xFF2E7D32),
-                                          textColor: Colors.white,
-                                        );
+                                        Utils.showToast("Phone number copied!");
                                       },
                                     ),
                                 ],
@@ -1498,3 +1482,4 @@ class _AdminCustomersPageState extends State<AdminCustomersPage> {
     );
   }
 }
+

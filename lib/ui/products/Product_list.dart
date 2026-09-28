@@ -15,6 +15,7 @@ import 'package:modern_grocery/widgets/fontstyle.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../bloc/cart_/addCart_bloc/add_cart_bloc.dart';
+import '../../widgets/utils.dart';
 
 class Product_list extends StatefulWidget {
   final String CategoryId;
@@ -90,17 +91,13 @@ class _Product_listState extends State<Product_list> {
                 listener: (context, state) {
                   if (state is AddCartLoading) {}
                   if (state is AddCartLoaded) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            languageService.getString('item_added_to_cart')),
-                      ),
+                    Utils.showToast(
+                      languageService.getString('item_added_to_cart'),
                     );
                   } else if (state is AddCartError) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
+                    Utils.showToast(
                       'Add to cart failed: ${state.message}',
-                    )));
+                    );
                   }
                   // TODO: implement listener
                 },

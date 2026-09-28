@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../widgets/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modern_grocery/repositery/model/Orders/getAllOrders_model.dart';
 
@@ -31,19 +32,9 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
       child: BlocListener<UpdateOrderStatusBloc, UpdateOrderStatusState>(
         listener: (context, state) {
           if (state is UpdateOrderStatusSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
+            Utils.showToast(state.message);
           } else if (state is UpdateOrderStatusFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red,
-              ),
-            );
+            Utils.showToast(state.error);
           }
         },
         child: Scaffold(
@@ -288,12 +279,7 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
     }
 
     if (statuses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No further status updates allowed.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      Utils.showToast('No further status updates allowed.');
       return;
     }
 

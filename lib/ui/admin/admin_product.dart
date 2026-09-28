@@ -121,12 +121,7 @@ class _AdminProductState extends State<AdminProduct> {
             bytes[3] == 0x47;
 
         if (!isJpeg && !isPng) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Only JPEG or PNG images are allowed'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          Utils.showToast('Only JPEG or PNG images are allowed');
           return;
         }
 
@@ -136,9 +131,7 @@ class _AdminProductState extends State<AdminProduct> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
+      Utils.showToast('Error picking image: $e');
     }
   }
 
@@ -182,13 +175,7 @@ class _AdminProductState extends State<AdminProduct> {
                 Navigator.of(dialogContext).pop();
 
                 // ✅ Show success
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Product added successfully'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                Utils.showToast('Product added successfully');
               } else if (state is CreateProductError) {
                 Utils().toastMessage(state.message);
 
@@ -297,39 +284,19 @@ class _AdminProductState extends State<AdminProduct> {
                         Navigator.of(dialogContext).pop();
 
                         // Show success
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Product updated successfully'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        Utils.showToast('Product updated successfully');
                       } else if (state is UpdateProductError) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to update product: ${state.message}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        Utils.showToast('Failed to update product: ${state.message}');
                       }
                     },
                   ),
                   BlocListener<DeleteImageBloc, DeleteImageState>(
                     listener: (context, state) {
                       if (state is DeleteImageLoaded) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Image deleted successfully'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        Utils.showToast('Image deleted successfully');
                         context.read<GetAllProductBloc>().add(fetchGetAllProduct(''));
                       } else if (state is DeleteImageError) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to delete image: ${state.message}'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        Utils.showToast('Failed to delete image: ${state.message}');
                       }
                     },
                   ),
@@ -791,12 +758,7 @@ class _AdminProductState extends State<AdminProduct> {
                 if (productData == null) {
                   // Creating a new product
                   if (_image == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'Please select an image for the new product'),
-                          backgroundColor: Colors.red),
-                    );
+                    Utils.showToast('Please select an image for the new product');
                     return;
                   }
                   context.read<CreateProductBloc>().add(
@@ -918,12 +880,7 @@ class _AdminProductState extends State<AdminProduct> {
     if (productState is! GetAllProductLoaded ||
         (productState.getAllProduct.data == null ||
             productState.getAllProduct.data!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No products available to export'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      Utils.showToast('No products available to export');
       return;
     }
 
@@ -1036,23 +993,7 @@ class _AdminProductState extends State<AdminProduct> {
         await ProductExcelExportService.openExcelFile(exportedFile.path);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: const Color(0xFF1B5E20),
-              duration: const Duration(seconds: 6),
-              content: Text(
-                'Excel exported successfully (${products.length} products)!',
-                style: const TextStyle(color: Colors.white),
-              ),
-              action: SnackBarAction(
-                label: 'Share',
-                textColor: _AppConstants.primaryColor,
-                onPressed: () {
-                  ProductExcelExportService.shareExcelFile(exportedFile.path);
-                },
-              ),
-            ),
-          );
+          Utils.showToast('Excel exported successfully (${products.length} products)!');
         }
       }
     } catch (e) {
@@ -1061,12 +1002,7 @@ class _AdminProductState extends State<AdminProduct> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to export Excel: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        Utils.showToast('Failed to export Excel: $e');
       }
     }
   }
@@ -1076,21 +1012,11 @@ class _AdminProductState extends State<AdminProduct> {
     return BlocListener<DeleteProductBloc, DeleteProductState>(
       listener: (context, state) {
         if (state is DeleteProductLoaded) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Product deleted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          Utils.showToast('Product deleted successfully');
           // Refresh list
           context.read<GetAllProductBloc>().add(fetchGetAllProduct(''));
         } else if (state is DeleteProductError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete product: ${state.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          Utils.showToast('Failed to delete product: ${state.message}');
         }
       },
       child: Scaffold(
