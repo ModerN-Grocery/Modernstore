@@ -1,0 +1,144 @@
+[{
+  "_id": {
+    "$oid": "699276fef62501122c4c8b56"
+  },
+  "name": "Vegetable",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647438457-scaled_78999.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992771df62501122c4c8b5a"
+  },
+  "name": "Fruits",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647463647-scaled_76827.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992775cf62501122c4c8b62"
+  },
+  "name": "Stationary",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789648229326-scaled_86122.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69da85965f94b6dcf10f0f23"
+  },
+  "name": "Bakery",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647549271-scaled_78985.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbce805f94b6dcf10f113a"
+  },
+  "name": "Cleaning Products",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647593395-scaled_78984.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7dda79328c92c3dbd5a600"
+  },
+  "name": "Personal Care",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789648128546-scaled_86120.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de2ad328c92c3dbd5a794"
+  },
+  "name": "Sweets",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647643564-scaled_78986.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de377328c92c3dbd5a7c7"
+  },
+  "name": "Soft Drinks",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647655876-scaled_78983.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de5f8328c92c3dbd5a86d"
+  },
+  "name": "Ice Creams",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647671175-scaled_78982.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de6dd328c92c3dbd5a8ad"
+  },
+  "name": "Dairy Products",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647685212-scaled_79001.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de802328c92c3dbd5a8e6"
+  },
+  "name": "Household Items",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647723725-scaled_78994.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a7de909328c92c3dbd5a907"
+  },
+  "name": "Electronics",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789647740242-scaled_79006.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a84797b328c92c3dbd5b08b"
+  },
+  "name": "Food Products",
+  "description": "Default description",
+  "image": "http://modern-store-backend.onrender.com/image/uploads/categories/1787066747593-scaled_1000225667.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a8488ab328c92c3dbd5b396"
+  },
+  "name": "Baby Care Products",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789648311858-scaled_86128.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a8489b7328c92c3dbd5b3e4"
+  },
+  "name": "Species",
+  "description": "Default description",
+  "image": "http://200.234.34.162:4055/image/uploads/categories/1789648031670-scaled_86099.jpg",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a885fd3328c92c3dbd5b9b9"
+  },
+  "name": "ICE CREAMS",
+  "description": "Default description",
+  "image": "http://modern-store-backend.onrender.com/image/uploads/categories/1787322323540-scaled_1000125303.jpg",
+  "__v": 0
+}]

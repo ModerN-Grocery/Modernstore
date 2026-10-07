@@ -188,8 +188,10 @@ class _DashboardState extends State<Dashboard> {
                         imageUrl: url,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorWidget: (context, url, error) =>
-                            _buildErrorImage(),
+                        errorWidget: (context, url, error) {
+                          debugPrint('❌ Image failed to load: $url | Error: $error');
+                          return _buildErrorImage();
+                        },
                         placeholder: (context, url) => Shimmer.fromColors(
                           baseColor: Colors.grey[900]!,
                           highlightColor: Colors.grey[800]!,

@@ -354,6 +354,8 @@ class _FruitCardState extends State<FruitCard>
           ? widget.product['images'][0]
           : '',
       fit: BoxFit.cover,
+      memCacheWidth: 350,
+      memCacheHeight: 350,
       placeholder: (_, __) => Shimmer.fromColors(
         baseColor: Colors.grey[400]!,
         highlightColor: Colors.grey[300]!,

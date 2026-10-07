@@ -114,6 +114,9 @@ class _EnterScreenState extends State<EnterScreen> {
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   backgroundColor: const Color(0xFF1C1C1C),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16.r),
+                                  ),
                                   title: Text(
                                     // --- REFACTORED STYLE ---
                                     languageService.getString(

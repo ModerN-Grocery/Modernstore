@@ -10,6 +10,7 @@ A feature-rich, modern E-Commerce & Grocery Shopping application built with **Fl
 | :---: | :---: |
 | ![App Screenshot 1](flutter_01.png) | ![App Screenshot 2](flutter_02.png) |
 
+
 ---
 
 ## ✨ Features
@@ -73,8 +74,8 @@ This project configures two product flavors:
 
 | Flavor | Application ID | App Name | Description |
 | :--- | :--- | :--- | :--- |
-| **`user`** | `com.example.modern_grocery.user` | Modern Grocery User | Shopping app for customer users |
-| **`admin`** | `com.example.modern_grocery.admin` | Modern Grocery Admin | Management dashboard for store admins |
+| **`user`** | `com.example.modern_grocery.user` | Modern Grocery | Shopping app for customer users |
+| **`admin`** | `com.example.modern_grocery.admin` | Mg Admin | Management dashboard for store admins |
 
 ---
 
@@ -117,6 +118,51 @@ To generate AAB bundles for Play Store publishing:
   flutter build appbundle --flavor admin --release
   ```
   > Output: `build/app/outputs/bundle/adminRelease/app-admin-release.aab`
+
+---
+
+## 📊 Bulk Stock Management & Excel Sync (480 Products)
+
+Manage and bulk-update inventory for all **480 store products** directly via Excel without entering stock one-by-one.
+
+### 📁 Files & Tools Included:
+1. **`ModernStore_All_480_Products_Stock.xlsx`**: Excel file containing all 480 live registered products with official MongoDB ObjectIDs, English names, Malayalam search names, SKU codes, categories, selling prices, current DB stock, and automatic `=Current+Add` formulas.
+2. **`stock_inventory_hub.html`**: Standalone offline web dashboard to view, filter, live search (in English or Malayalam), and edit stock quantities directly in any laptop browser (Chrome, Edge).
+3. **`sync_stock_to_server.py`**: Automated Python script that reads the edited Excel sheet and syncs all new stock quantities directly to the server database (`http://200.234.34.162:4055/api/inventory/addStocks`).
+
+---
+
+### ⚡ Quick Usage Workflow:
+
+#### 1. Edit Stock Quantities
+- Open **`ModernStore_All_480_Products_Stock.xlsx`** in Microsoft Excel, WPS, or Google Sheets.
+  *(Alternatively, double-click **`stock_inventory_hub.html`** to edit in browser and export)*
+- Enter the incoming stock quantities in the **`Stock To Add (Type New Qty Here)`** column (Column **L**).
+- Save the Excel file (`Ctrl + S`).
+
+#### 2. Run the One-Click Sync Command:
+Open PowerShell / Terminal in the project root directory and run:
+
+```powershell
+python sync_stock_to_server.py
+```
+
+> **Custom Excel file name**: If you renamed or moved the file:
+> ```powershell
+> python sync_stock_to_server.py "path/to/your_stock_file.xlsx"
+> ```
+
+#### 3. What the script does:
+- Validates the Excel file and filters all products where `Stock To Add > 0`.
+- Shows a preview list of products to be updated.
+- Connects directly to backend API `/inventory/addStocks`.
+- Updates the MongoDB database with real-time progress indicators:
+  ```text
+  [1/25] ✅ Urulakizhangu -> Added +50 units
+  [2/25] ✅ Onion -> Added +100 units
+  ...
+  🎉 Stock Sync Finished! Successfully Updated: 25 products
+  ```
 
 ---
 

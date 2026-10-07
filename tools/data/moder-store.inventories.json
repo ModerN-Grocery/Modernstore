@@ -1,0 +1,260 @@
+[{
+  "_id": {
+    "$oid": "6992a30ef62501122c4c8c80"
+  },
+  "productId": {
+    "$oid": "6992a2cdf62501122c4c8c35"
+  },
+  "SKU": "FRU-IRA-2671",
+  "unit": "KG",
+  "quantityInStock": 5,
+  "soldQuantity": 0,
+  "totalStock": 5,
+  "createdAt": {
+    "$date": "2026-02-16T04:54:38.112Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T04:54:38.112Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992a316f62501122c4c8c89"
+  },
+  "productId": {
+    "$oid": "6992a299f62501122c4c8c2f"
+  },
+  "SKU": "FRU-BAN-1829",
+  "unit": "KG",
+  "quantityInStock": 5,
+  "soldQuantity": 0,
+  "totalStock": 5,
+  "createdAt": {
+    "$date": "2026-02-16T04:54:46.410Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T04:54:46.410Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992a33bf62501122c4c8cae"
+  },
+  "productId": {
+    "$oid": "6992a267f62501122c4c8c29"
+  },
+  "SKU": "FRU-PPL-2175",
+  "unit": "KG",
+  "quantityInStock": 5,
+  "soldQuantity": 0,
+  "totalStock": 5,
+  "createdAt": {
+    "$date": "2026-02-16T04:55:23.758Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T04:55:23.758Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992a340f62501122c4c8cb7"
+  },
+  "productId": {
+    "$oid": "6992a1fdf62501122c4c8c18"
+  },
+  "SKU": "VEG-TOM-7161",
+  "unit": "KG",
+  "quantityInStock": 0,
+  "soldQuantity": 5,
+  "totalStock": 5,
+  "createdAt": {
+    "$date": "2026-02-16T04:55:28.886Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-16T16:10:39.287Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992a347f62501122c4c8cc0"
+  },
+  "productId": {
+    "$oid": "6992a1aaf62501122c4c8c12"
+  },
+  "SKU": "VEG-ONI-5130",
+  "unit": "KG",
+  "quantityInStock": 1,
+  "soldQuantity": 4,
+  "totalStock": 5,
+  "createdAt": {
+    "$date": "2026-02-16T04:55:35.992Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T05:30:21.845Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992a34ef62501122c4c8cc9"
+  },
+  "productId": {
+    "$oid": "6992a174f62501122c4c8c0c"
+  },
+  "SKU": "VEG-POT-1198",
+  "unit": "KG",
+  "quantityInStock": 11,
+  "soldQuantity": 5,
+  "totalStock": 16,
+  "createdAt": {
+    "$date": "2026-02-16T04:55:42.699Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-24T09:33:24.745Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69b80e589f1201df9496772e"
+  },
+  "productId": {
+    "$oid": "69b6c36a9f1201df9496766a"
+  },
+  "SKU": "FRU-LEM-9122",
+  "unit": "KG",
+  "quantityInStock": 5.25,
+  "soldQuantity": 5.75,
+  "totalStock": 11,
+  "createdAt": {
+    "$date": "2026-03-16T14:06:16.137Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-02T09:53:43.976Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69c259c0ae6bf19fcac01cd5"
+  },
+  "productId": {
+    "$oid": "69c25936ae6bf19fcac01c8b"
+  },
+  "SKU": "STA-WAT-4748",
+  "unit": "PCS",
+  "quantityInStock": 100,
+  "soldQuantity": 0,
+  "totalStock": 100,
+  "createdAt": {
+    "$date": "2026-03-24T09:30:40.026Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-24T09:30:40.026Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69c298fcae6bf19fcac01e36"
+  },
+  "productId": {
+    "$oid": "69b59d65c58fe0f2ebd980da"
+  },
+  "SKU": "VEG-RED-3621",
+  "unit": "KG",
+  "quantityInStock": 9.5,
+  "soldQuantity": 0.5,
+  "totalStock": 10,
+  "createdAt": {
+    "$date": "2026-03-24T14:00:28.346Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-09T03:51:23.282Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69d92fa15f94b6dcf10f0baa"
+  },
+  "productId": {
+    "$oid": "69d92e135f94b6dcf10f0b47"
+  },
+  "SKU": "VEG-CAR-6353",
+  "unit": "KG",
+  "quantityInStock": 100,
+  "soldQuantity": 0,
+  "totalStock": 100,
+  "createdAt": {
+    "$date": "2026-04-10T17:13:05.104Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-10T17:13:05.104Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69da5cb95f94b6dcf10f0d75"
+  },
+  "productId": {
+    "$oid": "69da5c905f94b6dcf10f0d3e"
+  },
+  "SKU": "VEG-MAT-2193",
+  "unit": "KG",
+  "quantityInStock": 100,
+  "soldQuantity": 0,
+  "totalStock": 100,
+  "createdAt": {
+    "$date": "2026-04-11T14:37:45.434Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-11T14:37:45.434Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69dbac4f5f94b6dcf10f0fa0"
+  },
+  "productId": {
+    "$oid": "69dbabe35f94b6dcf10f0f67"
+  },
+  "SKU": "BAK-MAL-2133",
+  "unit": "PCS",
+  "quantityInStock": 100,
+  "soldQuantity": 0,
+  "totalStock": 100,
+  "createdAt": {
+    "$date": "2026-04-12T14:29:35.654Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-12T14:29:35.654Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6ab8e5532a341f41b79a27e4"
+  },
+  "productId": {
+    "$oid": "6aaffba32a341f41b79a1f81"
+  },
+  "SKU": "PER-HAI-7514",
+  "unit": "PCS",
+  "quantityInStock": 15,
+  "soldQuantity": 0,
+  "totalStock": 15,
+  "createdAt": {
+    "$date": "2026-09-27T09:43:47.391Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-27T09:43:47.391Z"
+  },
+  "__v": 0
+}]

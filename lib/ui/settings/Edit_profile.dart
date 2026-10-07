@@ -233,19 +233,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     children: [
                                       CircleAvatar(
                                         radius: 40.r,
+                                        backgroundColor: const Color(0xFF1C1C1C),
                                         backgroundImage: _image != null
                                             ? FileImage(_image!)
-                                            : (_profileData
-                                                        ?.user.profileImage !=
-                                                    null
-                                                ? NetworkImage(_profileData!
-                                                    .user.profileImage)
-                                                : null) as ImageProvider?,
-                                        backgroundColor: Colors.grey[600],
+                                            : const AssetImage('assets/Icon/Customer profile.png') as ImageProvider,
+                                        foregroundImage: (_image == null &&
+                                                _profileData?.user.profileImage != null &&
+                                                _profileData!.user.profileImage.isNotEmpty)
+                                            ? NetworkImage(_profileData!.user.profileImage)
+                                            : null,
+                                        onForegroundImageError: (_, __) {
+                                          // Gracefully falls back to child icon on 404
+                                        },
                                         child: _image == null &&
-                                                _profileData
-                                                        ?.user.profileImage ==
-                                                    null
+                                                (_profileData?.user.profileImage == null ||
+                                                    _profileData!.user.profileImage.isEmpty)
                                             ? Icon(
                                                 Icons.person,
                                                 size: 40.sp,

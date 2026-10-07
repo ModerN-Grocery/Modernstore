@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -820,11 +821,18 @@ class _ProductImageSliderState extends State<_ProductImageSlider> {
                 final img = widget.images[index];
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(16.r),
-                  child: Image.network(
-                    img,
+                  child: CachedNetworkImage(
+                    imageUrl: img,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    errorBuilder: (_, __, ___) => Padding(
+                    memCacheWidth: 800,
+                    memCacheHeight: 800,
+                    placeholder: (context, url) => Shimmer.fromColors(
+                      baseColor: Colors.grey[900]!,
+                      highlightColor: Colors.grey[800]!,
+                      child: Container(color: Colors.grey[900]),
+                    ),
+                    errorWidget: (_, __, ___) => Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 140,
                         vertical: 120,
@@ -834,10 +842,6 @@ class _ProductImageSliderState extends State<_ProductImageSlider> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
                   ),
                 );
               },

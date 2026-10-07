@@ -7,6 +7,8 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../bloc/Stocks/GetAll_Inventory/get_all_stock_bloc.dart';
 import '../../repositery/model/Inventory/getAllnventory.dart';
+import '../../services/stock_excel_service.dart';
+import '../../widgets/utils.dart';
 import 'add_stock_page.dart';
 
 class AdminStock extends StatefulWidget {
@@ -19,7 +21,55 @@ class AdminStock extends StatefulWidget {
 class _AdminStockState extends State<AdminStock> {
   final TextEditingController _searchController = TextEditingController();
   List<Data> _allStocks = [];
-  List<Data> _filteredStocks = [];
+  bool _isExporting = false;
+
+  Future<void> _exportStockExcel() async {
+    if (_allStocks.isEmpty) {
+      Utils.showToast('No stock data available to export.');
+      return;
+    }
+
+    setState(() => _isExporting = true);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        content: Row(
+          children: [
+            const CircularProgressIndicator(color: Color(0xFFF5E9B5)),
+            SizedBox(width: 20.w),
+            const Expanded(
+              child: Text(
+                'Generating Stock Excel...',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final file =
+          await StockExcelService.exportStockToExcel(stockItems: _allStocks);
+      if (mounted) Navigator.of(context).pop();
+      setState(() => _isExporting = false);
+
+      if (file != null) {
+        await StockExcelService.openExcelFile(file.path);
+        Utils.showToast(
+            'Stock Excel exported (${_allStocks.length} products)!');
+      } else {
+        Utils.showToast('Failed to generate Excel.');
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context).pop();
+      setState(() => _isExporting = false);
+      Utils.showToast('Failed to export Excel: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -105,6 +155,19 @@ class _AdminStockState extends State<AdminStock> {
                 ),
                 prefixIcon: Icon(Icons.search, color: Colors.white),
               ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Export Stock Excel Button
+          GestureDetector(
+            onTap: _exportStockExcel,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B5E20), // Green for Excel
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: const Icon(Icons.file_download, color: Colors.white),
             ),
           ),
           SizedBox(width: 8.w),

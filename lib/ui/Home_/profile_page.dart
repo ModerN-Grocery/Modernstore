@@ -22,7 +22,11 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +53,7 @@ Future<void> _logoutUser(BuildContext context) async {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
         return Scaffold(
@@ -91,13 +96,13 @@ Future<void> _logoutUser(BuildContext context) async {
                     }
 
                     String userName = languageService.getString("user_name");
-                    ImageProvider userImage =
-                        const AssetImage('assets/Icon/Customer profile.png');
+                    String? profileImageUrl;
 
                     if (state is Userprofileloaded) {
                       userName = state.user.user.name ?? userName;
-                      if (state.user.user.profileImage != null) {
-                        userImage = NetworkImage(state.user.user.profileImage!);
+                      if (state.user.user.profileImage != null &&
+                          state.user.user.profileImage!.isNotEmpty) {
+                        profileImageUrl = state.user.user.profileImage;
                       }
                     }
 
@@ -107,7 +112,15 @@ Future<void> _logoutUser(BuildContext context) async {
                         children: [
                           CircleAvatar(
                             radius: 40.r,
-                            backgroundImage: userImage,
+                            backgroundColor: const Color(0xFF1C1C1C),
+                            backgroundImage:
+                                const AssetImage('assets/Icon/Customer profile.png'),
+                            foregroundImage: (profileImageUrl != null)
+                                ? NetworkImage(profileImageUrl)
+                                : null,
+                            onForegroundImageError: (_, __) {
+                              // Gracefully falls back to backgroundImage on 404
+                            },
                           ),
                           SizedBox(height: 10.h),
                           Text(
@@ -257,12 +270,13 @@ Future<void> _logoutUser(BuildContext context) async {
           ),
         ),
         SizedBox(height: 10.h),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.black,
-            border: Border.all(color: const Color(0xffC4C1B4)),
+        Material(
+          color: Colors.black,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
+            side: const BorderSide(color: Color(0xffC4C1B4)),
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(children: children),
         ),
         SizedBox(height: 20.h),

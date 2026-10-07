@@ -76,21 +76,23 @@ class _LanguagePageState extends State<LanguagePage> {
                       final isSelected =
                           languageService.currentLanguage == language['code'];
 
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 10.h),
-                        decoration: BoxDecoration(
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 10.h),
+                        child: Material(
                           color: isSelected
-                              ? const Color(0xFFF5E9B5).withOpacity(0.1)
+                              ? const Color(0xFFF5E9B5).withValues(alpha: 0.1)
                               : Colors.black,
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFFF5E9B5)
-                                : const Color(0xffC4C1B4),
-                            width: isSelected ? 2 : 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFFF5E9B5)
+                                  : const Color(0xffC4C1B4),
+                              width: isSelected ? 2 : 1,
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: ListTile(
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
                           leading: Text(
                             language['flag']!,
                             style: TextStyle(fontSize: 24.sp),
@@ -117,7 +119,8 @@ class _LanguagePageState extends State<LanguagePage> {
                           onTap: () => _changeLanguage(
                               language['code']!, language['name']!),
                         ),
-                      );
+                      ),
+                    );
                     },
                   ),
                 ),

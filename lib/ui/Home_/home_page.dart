@@ -32,15 +32,25 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _currrentBanner = 0;
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
+  final ValueNotifier<int> _currentBannerNotifier = ValueNotifier<int>(0);
   final CarouselSliderController _carouselController =
       CarouselSliderController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _checkTokenAndFetchData();
+  }
+
+  @override
+  void dispose() {
+    _currentBannerNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _checkTokenAndFetchData() async {
@@ -50,29 +60,18 @@ class _HomePageState extends State<HomePage> {
     final userType = prefs.getString('userType');
     final isAdminFlag = prefs.getBool('isAdmin');
    final UserId = prefs.getString('userId') ?? '';
-    // print(
-    //     ' [HomePage] Token check: ${token != null && token.isNotEmpty ? "Token exists (${token.substring(0, 20)}...)" : "NO TOKEN FOUND!"}');
-
-    if (token == null || token.isEmpty) {
-      // print(
-      //     ' [HomePage] WARNING: No authentication token! User must login first.');
-    }
 
     // Fetch data when the widget initializes
-    BlocProvider.of<GetAllCategoriesBloc>(context).add(fetchGetAllCategories());
-    BlocProvider.of<GetAllBannerBloc>(context).add(FetchGetAllBannerEvent());
-    BlocProvider.of<OfferproductBloc>(context).add(fetchOfferproductEvent());
-    BlocProvider.of<GetCategoryProductsBloc>(context)
-        .add(FetchCategoryProducts(categoryId: '67fb1aa6b49a18abdf26144e'));
-    BlocProvider.of<GetCategoryProductsBloc>(context)
-        .add(FetchCategoryProducts(categoryId: '67ec290adaa2fb3cd2af3a2a'));
-        // print('Fetching token...$token');
-        // print('User role: $role');
-        // print('User type: $userType');
+    if (mounted) {
+      BlocProvider.of<GetAllCategoriesBloc>(context).add(fetchGetAllCategories());
+      BlocProvider.of<GetAllBannerBloc>(context).add(FetchGetAllBannerEvent());
+      BlocProvider.of<OfferproductBloc>(context).add(fetchOfferproductEvent());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
         final lang = languageService.currentLanguage;
@@ -100,38 +99,12 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    AppLocalizations.getString(
-                                        'location', lang),
-                                    style: fontStyles.heading2.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 15.sp),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.location_on_sharp,
-                                        color: appColor.iconColor,
-                                        size: 22.sp,
-                                      ),
-                                      SizedBox(width: 3.w),
-                                      Text(
-                                        'Tirur ITC road', // Keep this as is since it's location specific
-                                        style: fontStyles.heading2.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.keyboard_arrow_down,
-                                        color: appColor.iconColor,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              Image.asset(
+                                'assets/modern_logo_gold.png',
+                                height: 38.h,
+                                fit: BoxFit.contain,
                               ),
                               IconButton(
                                 padding: EdgeInsetsDirectional.zero,
@@ -322,6 +295,8 @@ class _HomePageState extends State<HomePage> {
                                             imageUrl: url,
                                             fit: BoxFit.cover,
                                             width: double.infinity,
+                                            memCacheWidth: 800,
+                                            maxWidthDiskCache: 800,
                                             errorWidget:
                                                 (context, url, error) =>
                                                     _buildErrorImage(lang),
@@ -354,34 +329,33 @@ class _HomePageState extends State<HomePage> {
                                         enlargeFactor: 0.3,
                                         scrollDirection: Axis.horizontal,
                                         onPageChanged: (index, reason) {
-                                          setState(() {
-                                            _currrentBanner = index;
-                                          });
+                                          _currentBannerNotifier.value = index;
                                         },
                                       ),
                                     ),
                                     SizedBox(height: 22.h),
-                                    // [ADD THIS IN ITS PLACE]
                                     if (bannerImages.length > 1)
                                       Padding(
-                                        padding: EdgeInsets.only(
-                                            top: 8
-                                                .h), // Adjust spacing as needed
-                                        child: AnimatedSmoothIndicator(
-                                          activeIndex: _currrentBanner,
-                                          count: bannerImages.length,
-                                          effect: WormEffect(
-                                            dotHeight: 8.h,
-                                            dotWidth: 8.w,
-                                            spacing: 5.w,
-                                            activeDotColor: Colors
-                                                .white, // Or use appColor.iconColor
-                                            dotColor: Colors.grey,
-                                          ),
-                                          onDotClicked: (index) {
-                                            // This makes the dots tappable
-                                            _carouselController
-                                                .animateToPage(index);
+                                        padding: EdgeInsets.only(top: 8.h),
+                                        child: ValueListenableBuilder<int>(
+                                          valueListenable:
+                                              _currentBannerNotifier,
+                                          builder: (context, activeIndex, _) {
+                                            return AnimatedSmoothIndicator(
+                                              activeIndex: activeIndex,
+                                              count: bannerImages.length,
+                                              effect: WormEffect(
+                                                dotHeight: 8.h,
+                                                dotWidth: 8.w,
+                                                spacing: 5.w,
+                                                activeDotColor: Colors.white,
+                                                dotColor: Colors.grey,
+                                              ),
+                                              onDotClicked: (index) {
+                                                _carouselController
+                                                    .animateToPage(index);
+                                              },
+                                            );
                                           },
                                         ),
                                       ),
@@ -514,6 +488,8 @@ class _HomePageState extends State<HomePage> {
                                                 ? CachedNetworkImage(
                                                     imageUrl: imageUrl,
                                                     fit: BoxFit.cover,
+                                                    memCacheWidth: 200,
+                                                    memCacheHeight: 200,
                                                     errorWidget:
                                                         (context, url, error) =>
                                                             Image.asset(
@@ -911,6 +887,8 @@ class ProductCard extends StatelessWidget {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+        memCacheWidth: 350,
+        memCacheHeight: 350,
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: Colors.grey[800]!,
           highlightColor: Colors.grey[700]!,

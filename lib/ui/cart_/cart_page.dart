@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -22,8 +23,12 @@ class CartPage extends StatefulWidget {
   State<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> {
+class _CartPageState extends State<CartPage>
+    with AutomaticKeepAliveClientMixin {
   String selectedPaymentMethod = 'Cash on Delivery';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -32,23 +37,9 @@ class _CartPageState extends State<CartPage> {
     context.read<GetAllUserCartBloc>().add(fetchGetAllUserCartEvent());
   }
 
-  // final List<Map<String, dynamic>> favourites = [
-  //   {
-  //     'name': 'Banana',
-  //     'image': 'assets/Banana.png',
-  //     'price': 80,
-  //     'mrp': 100,
-  //   },
-  //   {
-  //     'name': 'Carrot',
-  //     'image': 'assets/Carrot.png',
-  //     'price': 80,
-  //     'mrp': 100,
-  //   },
-  // ];
-
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
         return Scaffold(
@@ -635,10 +626,17 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
                 ? (widget.item['image'].toString().startsWith('http')
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12.r),
-                        child: Image.network(
-                          widget.item['image'],
+                        child: CachedNetworkImage(
+                          imageUrl: widget.item['image'].toString(),
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
+                          memCacheWidth: 250,
+                          memCacheHeight: 250,
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[800]!,
+                            highlightColor: Colors.grey[700]!,
+                            child: Container(color: Colors.grey[800]),
+                          ),
+                          errorWidget: (context, url, error) =>
                               Image.asset('assets/placeholder.png',
                                   fit: BoxFit.contain),
                         ),

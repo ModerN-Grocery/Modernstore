@@ -21,11 +21,15 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage>
+    with AutomaticKeepAliveClientMixin {
   late LanguageService languageService;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   bool get _isSearching => _searchController.text.isNotEmpty;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -45,17 +49,15 @@ class _SearchPageState extends State<SearchPage> {
 
 void _onSearchChanged() {
   if (_debounce?.isActive ?? false) _debounce!.cancel();
-  _debounce = Timer(const Duration(milliseconds: 500), () {
+  _debounce = Timer(const Duration(milliseconds: 350), () {
     final query = _searchController.text.trim();
     if (query.isNotEmpty) {
       context.read<GetAllProductBloc>().add(fetchGetAllProduct(query));
-      setState(() {
-        
-      });
+      if (mounted) setState(() {});
     } else {
       // clear product results and show categories
       context.read<GetAllProductBloc>().add(fetchGetAllProduct(''));
-      setState(() {}); // forces AnimatedSwitcher to show categories based on _isSearching
+      if (mounted) setState(() {}); // forces AnimatedSwitcher to show categories based on _isSearching
     }
   });
 }
@@ -63,6 +65,7 @@ void _onSearchChanged() {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0909),
       body: Padding(
@@ -227,14 +230,16 @@ void _onSearchChanged() {
                     imageUrl: imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    memCacheWidth: 300,
+                    memCacheHeight: 300,
                     placeholder: (context, url) => Shimmer.fromColors( // Shimmer placeholder
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
                       child: Container(color: Colors.white),
                     ),
-                    // errorBuilder: (context, error, stackTrace) {
-                    //   return const Icon(Icons.broken_image, color: Colors.grey); // Error icon
-                    // },
+                    errorWidget: (context, error, stackTrace) {
+                      return const Icon(Icons.broken_image, color: Colors.grey);
+                    },
                   ),
                 ),
               ),
@@ -260,6 +265,7 @@ void _onSearchChanged() {
 
   Widget _buildProductGridView(List<dynamic> products) {
     return GridView.builder(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.63,

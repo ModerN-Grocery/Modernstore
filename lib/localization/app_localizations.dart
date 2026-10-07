@@ -112,6 +112,9 @@ class AppLocalizations {
 
 // Login/Enter Screen
       'skip': 'Skip',
+      'skip_warning_title': 'Skip Login?',
+      'skip_warning_message':
+          'Are you sure you want to continue without logging in? You can browse products, but placing orders and saving addresses require login.',
       'enter_your_number': 'Enter your number',
       'mobile_number': 'Mobile Number',
       'enter_mobile_hint': 'Enter your mobile number',
@@ -470,14 +473,17 @@ class AppLocalizations {
       'and': 'और ',
       'privacy_policy_text': 'गोपनीयता नीति ',
       // Login/Enter Screen
-      'skip': 'Skip',
-      'enter_your_number': 'Enter your number',
-      'mobile_number': 'Mobile Number',
-      'enter_mobile_hint': 'Enter your mobile number',
+      'skip': 'छोड़ें',
+      'skip_warning_title': 'लॉगिन छोड़ें?',
+      'skip_warning_message':
+          'क्या आप बिना लॉगिन किए जारी रखना चाहते हैं? आप उत्पाद देख सकते हैं, लेकिन ऑर्डर करने और पता सहेजने के लिए लॉगिन आवश्यक है।',
+      'enter_your_number': 'अपना मोबाइल नंबर दर्ज करें',
+      'mobile_number': 'मोबाइल नंबर',
+      'enter_mobile_hint': 'मोबाइल नंबर दर्ज करें',
       'continue_with_phone': 'Continue with Phone',
-      'login_error': 'Login error. Please try again.',
-      'processing': 'Processing...',
-      'please_enter_phone': 'Please enter your phone number',
+      'login_error': 'लॉगिन त्रुटि। कृपया पुन: प्रयास करें।',
+      'processing': 'प्रोसेसिंग...',
+      'please_enter_phone': 'कृपया फोन नंबर दर्ज करें',
 
       // Orders
       'my_orders': 'मेरे ऑर्डर',
@@ -647,6 +653,9 @@ class AppLocalizations {
       'enter_location_manually': 'സ്ഥലം മാനുവലായി നൽകുക',
 // Login/Enter Screen
       'skip': 'ഒഴിവാക്കുക',
+      'skip_warning_title': 'ലോഗിൻ ഒഴിവാക്കണോ?',
+      'skip_warning_message':
+          'ലോഗിൻ ചെയ്യാതെ തുടരണമെന്ന് ഉറപ്പാണോ? ഉൽപ്പന്നങ്ങൾ കാണാൻ സാധിക്കുമെങ്കിലും ഓർഡർ നൽകാനും വിലാസം സേവ് ചെയ്യാനും ലോഗിൻ ചെയ്യേണ്ടതുണ്ട്.',
       'enter_your_number': 'നിങ്ങളുടെ നമ്പർ നൽകുക',
       'mobile_number': 'മൊബൈൽ നമ്പർ',
       'enter_mobile_hint': 'നിങ്ങളുടെ മൊബൈൽ നമ്പർ നൽകുക',

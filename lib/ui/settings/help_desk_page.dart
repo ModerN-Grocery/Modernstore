@@ -358,36 +358,39 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10.h),
+      child: Material(
         color: Colors.black,
-        border: Border.all(color: const Color(0xffC4C1B4)),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: const Color(0xFFF5E9B5), size: 24.sp),
-        title: Text(
-          title,
-          style: GoogleFonts.inter(
-            color: const Color(0xFFFCF8E8),
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          side: const BorderSide(color: Color(0xffC4C1B4)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon, color: const Color(0xFFF5E9B5), size: 24.sp),
+          title: Text(
+            title,
+            style: GoogleFonts.inter(
+              color: const Color(0xFFFCF8E8),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.inter(
-            color: const Color(0xFFFCF8E8).withValues(alpha: 0.7),
-            fontSize: 14.sp,
+          subtitle: Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              color: const Color(0xFFFCF8E8).withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
           ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            color: Colors.white,
+            size: 16.sp,
+          ),
+          onTap: onTap,
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white,
-          size: 16.sp,
-        ),
-        onTap: onTap,
       ),
     );
   }

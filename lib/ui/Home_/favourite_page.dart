@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,11 +27,14 @@ class FavouritePage extends StatefulWidget {
   State<FavouritePage> createState() => _FavouritePageState();
 }
 
-class _FavouritePageState extends State<FavouritePage> {
+class _FavouritePageState extends State<FavouritePage>
+    with AutomaticKeepAliveClientMixin {
   late GetToWishlistModel data;
   bool _isLoading = false;
   final Set<String> _selectedItems = {};
 
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -41,6 +45,7 @@ class _FavouritePageState extends State<FavouritePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
               final lang = languageService.currentLanguage;
@@ -308,12 +313,19 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
                 children: [
                   imageUrl.isNotEmpty
                       ? Center(
-                          child: Image.network(
-                            imageUrl,
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
                             fit: BoxFit.contain,
                             width: 120.w,
                             height: 80.h,
-                            errorBuilder: (context, error, stackTrace) {
+                            memCacheWidth: 250,
+                            memCacheHeight: 250,
+                            placeholder: (context, url) => Shimmer.fromColors(
+                              baseColor: Colors.grey[800]!,
+                              highlightColor: Colors.grey[700]!,
+                              child: Container(color: Colors.grey[800]),
+                            ),
+                            errorWidget: (context, error, stackTrace) {
                               return const Icon(Icons.image_not_supported,
                                   color: Colors.grey);
                             },
