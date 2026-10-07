@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -185,18 +185,34 @@ class NotificationService {
       Int64List.fromList([0, 500, 200, 500, 200, 500]);
 
   Future<void> init() async {
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    await _fcm.requestPermission(alert: true, badge: true, sound: true);
-    await _fcm.setForegroundNotificationPresentationOptions(
-        alert: true, badge: true, sound: true);
-    await _initLocalNotifications();
+      await _fcm.requestPermission(alert: true, badge: true, sound: true);
+      await _fcm.setForegroundNotificationPresentationOptions(
+          alert: true, badge: true, sound: true);
+      await _initLocalNotifications();
 
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    final token = await _fcm.getToken();
-    debugPrint('FCM Token: $token');
+      // On iOS, getToken() can hang if APNs token is not ready yet.
+      // We wrap it in a timeout so it never blocks the app.
+      try {
+        final token = await _fcm.getToken().timeout(
+          const Duration(seconds: 4),
+          onTimeout: () {
+            debugPrint('FCM getToken timed out waiting for APNs token');
+            return null;
+          },
+        );
+        debugPrint('FCM Token: $token');
+      } catch (e) {
+        debugPrint('FCM getToken error: $e');
+      }
+    } catch (e) {
+      debugPrint('NotificationService init error: $e');
+    }
   }
 
   Future<String?> getToken() async => await _fcm.getToken();

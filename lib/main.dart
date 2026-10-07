@@ -63,11 +63,20 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await NotificationService.instance.init();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase.initializeApp error: $e');
+  }
+
   runApp(const MyApp());
+
+  // Initialize notifications asynchronously so it never blocks UI rendering
+  NotificationService.instance.init().catchError((e) {
+    debugPrint('NotificationService init error: $e');
+  });
 }
 
 class MyApp extends StatelessWidget {
