@@ -107,7 +107,6 @@ flutter:
     - assets/
     - assets/Icon/trash-2.svg
     - assets/Icon/
-    - assets/service_account.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
