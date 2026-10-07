@@ -242,9 +242,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                                 _profileData!.user.profileImage.isNotEmpty)
                                             ? NetworkImage(_profileData!.user.profileImage)
                                             : null,
-                                        onForegroundImageError: (_, __) {
-                                          // Gracefully falls back to child icon on 404
-                                        },
+                                        onForegroundImageError: (_image == null &&
+                                                _profileData?.user.profileImage != null &&
+                                                _profileData!.user.profileImage.isNotEmpty)
+                                            ? (_, __) {
+                                                // Gracefully falls back to child icon on 404
+                                              }
+                                            : null,
                                         child: _image == null &&
                                                 (_profileData?.user.profileImage == null ||
                                                     _profileData!.user.profileImage.isEmpty)

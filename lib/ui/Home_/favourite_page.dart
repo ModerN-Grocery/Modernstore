@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modern_grocery/bloc/wishList/GetToWishlist_bloc/get_to_wishlist_bloc.dart';
 import 'package:modern_grocery/bloc/wishList/remove%20towish/removetowishlist_bloc.dart';
@@ -170,9 +169,99 @@ class _FavouritePageState extends State<FavouritePage>
                         );
                       }
 
+                      final allProductIds = wishlistItems
+                          .map((e) => e.productId?.id)
+                          .where((id) => id != null)
+                          .cast<String>()
+                          .toSet();
+                      final bool isAllSelected = allProductIds.isNotEmpty &&
+                          _selectedItems.containsAll(allProductIds);
+
                       return Expanded(
                         child: Column(
                           children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.h),
+                              child: Row(
+                                children: [
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(6.r),
+                                    onTap: () {
+                                      setState(() {
+                                        if (isAllSelected) {
+                                          _selectedItems.clear();
+                                        } else {
+                                          _selectedItems.addAll(allProductIds);
+                                        }
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 4.w, vertical: 4.h),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 20.w,
+                                            height: 20.w,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(4.r),
+                                              border: Border.all(
+                                                color: isAllSelected
+                                                    ? const Color(0xFFF5E9B5)
+                                                    : const Color(0xCEB4B2A9),
+                                                width: 1.5,
+                                              ),
+                                              color: isAllSelected
+                                                  ? const Color(0xFFF5E9B5)
+                                                  : Colors.transparent,
+                                            ),
+                                            child: isAllSelected
+                                                ? const Icon(Icons.check,
+                                                    size: 15,
+                                                    color: Colors.black)
+                                                : null,
+                                          ),
+                                          SizedBox(width: 8.w),
+                                          Text(
+                                            isAllSelected
+                                                ? languageService
+                                                    .getString('deselect_all')
+                                                : languageService
+                                                    .getString('select_all'),
+                                            style: GoogleFonts.poppins(
+                                              color: const Color(0xFFFCF8E8),
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (_selectedItems.isNotEmpty)
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 10.w, vertical: 3.h),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF5E9B5)
+                                            .withValues(alpha: 0.15),
+                                        borderRadius:
+                                            BorderRadius.circular(12.r),
+                                      ),
+                                      child: Text(
+                                        '${_selectedItems.length} ${languageService.getString('items_selected')}',
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xFFF5E9B5),
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                             Expanded(
                               child: ListView.builder(
                                 itemCount: wishlistItems.length,
@@ -205,7 +294,9 @@ class _FavouritePageState extends State<FavouritePage>
                                 width: 380.w,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xffF5E9B5),
+                                    backgroundColor: _selectedItems.isEmpty
+                                        ? const Color(0x40F5E9B5)
+                                        : const Color(0xffF5E9B5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.r),
                                     ),
@@ -223,16 +314,21 @@ class _FavouritePageState extends State<FavouritePage>
                                               }
                                             },
                                   child: Center(
-                                    child:_isLoading
+                                    child: _isLoading
                                         ? const CircularProgressIndicator()
                                         : Text(
-                                      languageService.getString('add_to_cart'),
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.black,
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
+                                            _selectedItems.isEmpty
+                                                ? languageService
+                                                    .getString('add_to_cart')
+                                                : '${languageService.getString('add_to_cart')} (${_selectedItems.length})',
+                                            style: GoogleFonts.poppins(
+                                              color: _selectedItems.isEmpty
+                                                  ? Colors.white38
+                                                  : Colors.black,
+                                              fontSize: 18.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ),
@@ -260,12 +356,12 @@ class FavouriteItemCard extends StatefulWidget {
   final ValueChanged<bool> onSelected;
 
   const FavouriteItemCard({
-    Key? key,
+    super.key,
     required this.item,
     required this.languageService,
     required this.isSelected,
     required this.onSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<FavouriteItemCard> createState() => _FavouriteItemCardState();
@@ -290,15 +386,25 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
         basePrice - (basePrice * discountPercentage / 100).round();
 
     return GestureDetector(
+      onTap: () {
+        widget.onSelected(!widget.isSelected);
+      },
       child: Container(
         height: 113.h,
         margin: EdgeInsets.symmetric(
           vertical: 8.h,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A0808),
+          color: widget.isSelected
+              ? const Color(0xFF161514)
+              : const Color(0xFF0A0808),
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: const Color(0xDBFCF8E8)),
+          border: Border.all(
+            color: widget.isSelected
+                ? const Color(0xFFF5E9B5)
+                : const Color(0x38FCF8E8),
+            width: widget.isSelected ? 1.5 : 1,
+          ),
         ),
         child: Row(
           children: [
@@ -336,18 +442,26 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
                               color: Colors.grey),
                         ),
                   Positioned(
-                    top: 10.h,
-                    left: 10.w,
+                    top: 8.h,
+                    left: 8.w,
                     child: GestureDetector(
                       onTap: () {
                         widget.onSelected(!widget.isSelected);
                       },
                       child: Container(
-                        height: 22.h,
-                        width: 22.w,
+                        height: 24.w,
+                        width: 24.w,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFECE1),
+                          color: widget.isSelected
+                              ? const Color(0xFFF5E9B5)
+                              : Colors.black.withValues(alpha: 0.45),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.isSelected
+                                ? const Color(0xFFF5E9B5)
+                                : Colors.white70,
+                            width: 1.5,
+                          ),
                         ),
                         child: widget.isSelected
                             ? Icon(Icons.check,
@@ -414,34 +528,54 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                InkWell(
-                  onTap: () {
-                    final productId = widget.item['productId'];
-                    final id = productId['_id'];
-                    if (productId != null) {
-                      context
-                          .read<RemovetowishlistBloc>()
-                          .add(fetchRemovetowishlistEvent(id));
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        context
-                            .read<GetToWishlistBloc>()
-                            .add(fetchGetToWishlistEvent());
-                      });
-                    }
-                  },
-                  child: CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: const Color(0xFFEFECE1),
-                    child: SvgPicture.asset(
-                      'assets/Icon/trash-2.svg',
-                      width: 20.w,
-                      height: 20.h,
+                Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(
+                        color: const Color(0xFFFF6B6B).withValues(alpha: 0.6),
+                        width: 1,
+                      ),
+                    ),
+                    child: TextButton(
+                      onPressed: () {
+                        final productId = widget.item['productId'];
+                        final id = productId?['_id'];
+                        if (id != null) {
+                          context
+                              .read<RemovetowishlistBloc>()
+                              .add(fetchRemovetowishlistEvent(id));
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            context
+                                .read<GetToWishlistBloc>()
+                                .add(fetchGetToWishlistEvent());
+                          });
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 6.h),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Text(
+                        widget.languageService.getString('remove'),
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFFFF6B6B),
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(width: 9.w),
           ],
         ),
       ),

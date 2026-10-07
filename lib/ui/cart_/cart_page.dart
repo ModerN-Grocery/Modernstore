@@ -843,23 +843,116 @@ class _FavouriteItemCardState extends State<FavouriteItemCard> {
             right: 8.w,
             child: GestureDetector(
               onTap: () {
-                context.read<RemoveCartItemBloc>().add(RemoveItemEvent(
-                      productId: widget.productId,
-                    ));
+                _showRemoveConfirmationDialog(context);
               },
               child: CircleAvatar(
-                    radius: 14.r,
-                    backgroundColor: const Color(0xFFEFECE1),
-                    child: SvgPicture.asset(
-                      'assets/Icon/trash-2.svg',
-                      width: 16.w,
-                      height: 16.h,
-                    ),
-                  ),
+                radius: 14.r,
+                backgroundColor: const Color(0xFFEFECE1),
+                child: SvgPicture.asset(
+                  'assets/Icon/trash-2.svg',
+                  width: 16.w,
+                  height: 16.h,
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showRemoveConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1C1C1C),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+            side: const BorderSide(color: Color(0xFF2A2825)),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: const Color(0xFFFF6B6B),
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  widget.languageService.getString('remove_item_title'),
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFFFCF8E8),
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            widget.languageService.getString('remove_cart_confirm'),
+            style: GoogleFonts.inter(
+              color: const Color(0xFFFCF8E8).withValues(alpha: 0.8),
+              fontSize: 14.sp,
+              height: 1.5,
+            ),
+          ),
+          actionsPadding:
+              EdgeInsets.only(bottom: 16.h, right: 16.w, left: 16.w),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              style: TextButton.styleFrom(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              ),
+              child: Text(
+                widget.languageService.getString('cancel'),
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFFCF8E8),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<RemoveCartItemBloc>().add(
+                      RemoveItemEvent(productId: widget.productId),
+                    );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF6B6B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
+              ),
+              child: Text(
+                widget.languageService.getString('remove'),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -253,6 +253,12 @@ class AppLocalizations {
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
       'no_orders_found': 'No orders found',
+      'remove': 'Remove',
+      'remove_item_title': 'Remove Item?',
+      'remove_cart_confirm': 'Are you sure you want to remove this item from your cart?',
+      'select_all': 'Select All',
+      'deselect_all': 'Deselect All',
+      'items_selected': 'items selected',
     },
     'hi': {
       // Common
@@ -491,6 +497,12 @@ class AppLocalizations {
       'delivered': 'डिलीवर किया गया',
       'cancelled': 'रद्द किया गया',
       'no_orders_found': 'कोई ऑर्डर नहीं मिला',
+      'remove': 'हटाएं',
+      'remove_item_title': 'आइटम हटाएं?',
+      'remove_cart_confirm': 'क्या आप वाकई इस आइटम को अपने कार्ट से हटाना चाहते हैं?',
+      'select_all': 'सभी चुनें',
+      'deselect_all': 'सभी अचयनित करें',
+      'items_selected': 'आइटम चुने गए',
     },
     'ml': {
       // Common
@@ -737,6 +749,12 @@ class AppLocalizations {
       'delivered': 'ഡെലിവറി ചെയ്തു',
       'cancelled': 'റദ്ദാക്കി',
       'no_orders_found': 'ഓർഡറുകളൊന്നും കണ്ടെത്തിയില്ല',
+      'remove': 'ഒഴിവാക്കുക',
+      'remove_item_title': 'ഇനം ഒഴിവാക്കണോ?',
+      'remove_cart_confirm': 'ഈ ഇനം കാർട്ടിൽ നിന്ന് ഒഴിവാക്കണമെന്ന് ഉറപ്പാണോ?',
+      'select_all': 'എല്ലാം തിരഞ്ഞെടുക്കുക',
+      'deselect_all': 'തിരഞ്ഞെടുക്കൽ മാറ്റുക',
+      'items_selected': 'ഇനങ്ങൾ തിരഞ്ഞെടുത്തു',
     },
   };
 

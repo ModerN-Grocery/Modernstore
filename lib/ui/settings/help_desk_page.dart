@@ -207,10 +207,7 @@ class _HelpDeskPageState extends State<HelpDeskPage> {
                 languageService.getString('faq_track_order'),
                 languageService.getString('faq_track_order_answer'),
               ),
-              _buildFAQItem(
-                languageService.getString('faq_return_policy'),
-                languageService.getString('faq_return_policy_answer'),
-              ),
+            
             ]),
 
             SizedBox(height: 30.h),

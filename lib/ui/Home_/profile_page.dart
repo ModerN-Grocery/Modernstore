@@ -9,6 +9,8 @@ import 'package:modern_grocery/ui/settings/Edit_profile.dart';
 import 'package:modern_grocery/ui/settings/about_us_page.dart';
 import 'package:modern_grocery/ui/settings/help_desk_page.dart';
 import 'package:modern_grocery/ui/settings/language_page.dart';
+import 'package:modern_grocery/ui/settings/privacy_policy_page.dart';
+import 'package:modern_grocery/ui/settings/terms_conditions_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -118,9 +120,11 @@ Future<void> _logoutUser(BuildContext context) async {
                             foregroundImage: (profileImageUrl != null)
                                 ? NetworkImage(profileImageUrl)
                                 : null,
-                            onForegroundImageError: (_, __) {
-                              // Gracefully falls back to backgroundImage on 404
-                            },
+                            onForegroundImageError: profileImageUrl != null
+                                ? (_, __) {
+                                    // Gracefully falls back to backgroundImage on 404
+                                  }
+                                : null,
                           ),
                           SizedBox(height: 10.h),
                           Text(
@@ -241,11 +245,19 @@ Future<void> _logoutUser(BuildContext context) async {
                   }),
                   buildListTile(Icons.description,
                       languageService.getString("terms_conditions"), onTap: () {
-                    Utils.showToast(languageService.getString("terms_coming"));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const TermsConditionsPage()),
+                    );
                   }),
                   buildListTile(Icons.privacy_tip,
                       languageService.getString("privacy_policy"), onTap: () {
-                    Utils.showToast(languageService.getString("privacy_coming"));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyPage()),
+                    );
                   }),
                 ]),
               ],

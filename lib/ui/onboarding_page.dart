@@ -1,8 +1,11 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:modern_grocery/localization/app_localizations.dart';
 import 'package:modern_grocery/services/language_service.dart';
 import 'package:modern_grocery/ui/auth_/enter_screen.dart';
+import 'package:modern_grocery/ui/settings/privacy_policy_page.dart';
+import 'package:modern_grocery/ui/settings/terms_conditions_page.dart';
 import 'package:provider/provider.dart';
 
 import 'package:modern_grocery/widgets/app_color.dart';
@@ -152,7 +155,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               text: AppLocalizations.getString(
                                   'terms_of_service',
                                   languageService.currentLanguage),
-                              // --- REFACTORED STYLE ---
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TermsConditionsPage(),
+                                    ),
+                                  );
+                                },
                               style: fontStyles.caption.copyWith(
                                 color: appColor.textColor2,
                                 fontSize: 15.sp,
@@ -176,6 +188,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               text: AppLocalizations.getString(
                                   'privacy_policy_text',
                                   languageService.currentLanguage),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const PrivacyPolicyPage(),
+                                    ),
+                                  );
+                                },
                               style: fontStyles.caption.copyWith(
                                 color: appColor.textColor2,
                                 fontSize: 15.sp,
