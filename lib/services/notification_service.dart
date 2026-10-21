@@ -196,17 +196,31 @@ class NotificationService {
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-      // On iOS, getToken() can hang if APNs token is not ready yet.
-      // We wrap it in a timeout so it never blocks the app.
+      // Listen for token updates when APNs arrives
+      _fcm.onTokenRefresh.listen((token) {
+        debugPrint('FCM Token refreshed: $token');
+      });
+
+      // On iOS, getToken() requires an APNs token first.
       try {
-        final token = await _fcm.getToken().timeout(
-          const Duration(seconds: 4),
-          onTimeout: () {
-            debugPrint('FCM getToken timed out waiting for APNs token');
-            return null;
-          },
-        );
-        debugPrint('FCM Token: $token');
+        if (Platform.isIOS) {
+          final apnsToken = await _fcm.getAPNSToken();
+          if (apnsToken == null) {
+            debugPrint('iOS APNs token not available yet; FCM token will be generated once APNs arrives');
+          } else {
+            final token = await _fcm.getToken();
+            debugPrint('FCM Token: $token');
+          }
+        } else {
+          final token = await _fcm.getToken().timeout(
+            const Duration(seconds: 4),
+            onTimeout: () {
+              debugPrint('FCM getToken timed out');
+              return null;
+            },
+          );
+          debugPrint('FCM Token: $token');
+        }
       } catch (e) {
         debugPrint('FCM getToken error: $e');
       }
@@ -215,17 +229,50 @@ class NotificationService {
     }
   }
 
-  Future<String?> getToken() async => await _fcm.getToken();
+  Future<String?> getToken() async {
+    try {
+      if (Platform.isIOS) {
+        final apnsToken = await _fcm.getAPNSToken();
+        if (apnsToken == null) return null;
+      }
+      return await _fcm.getToken();
+    } catch (e) {
+      debugPrint('FCM getToken error: $e');
+      return null;
+    }
+  }
 
   // Admin topic subscription
   Future<void> subscribeToAdminTopic() async {
-    await _fcm.subscribeToTopic('admin_orders');
-    debugPrint('Subscribed to admin_orders topic');
+    try {
+      if (Platform.isIOS) {
+        final apnsToken = await _fcm.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint('APNs token not available; skipping subscribeToAdminTopic');
+          return;
+        }
+      }
+      await _fcm.subscribeToTopic('admin_orders');
+      debugPrint('Subscribed to admin_orders topic');
+    } catch (e) {
+      debugPrint('FCM subscribe error: $e');
+    }
   }
 
   Future<void> unsubscribeFromAdminTopic() async {
-    await _fcm.unsubscribeFromTopic('admin_orders');
-    debugPrint('Unsubscribed from admin_orders topic');
+    try {
+      if (Platform.isIOS) {
+        final apnsToken = await _fcm.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint('APNs token not available; skipping unsubscribeFromAdminTopic');
+          return;
+        }
+      }
+      await _fcm.unsubscribeFromTopic('admin_orders');
+      debugPrint('Unsubscribed from admin_orders topic');
+    } catch (e) {
+      debugPrint('FCM unsubscribe error: $e');
+    }
   }
 
   Future<void> _initLocalNotifications() async {
