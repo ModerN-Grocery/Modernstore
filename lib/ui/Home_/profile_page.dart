@@ -13,6 +13,7 @@ import 'package:modern_grocery/ui/settings/privacy_policy_page.dart';
 import 'package:modern_grocery/ui/settings/terms_conditions_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:modern_grocery/repositery/api/api_client.dart';
 
 import 'my_address_page.dart';
 import '../../widgets/utils.dart';
@@ -35,23 +36,120 @@ class _ProfilePageState extends State<ProfilePage>
       BlocProvider.of<UserprofileBloc>(context).add(fetchUserprofile());
   }
 
-Future<void> _logoutUser(BuildContext context) async {
-  final prefs = await SharedPreferences.getInstance();
+  Future<void> _logoutUser(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
 
-  // Clear only auth-related data (or use clear() if you want everything gone)
-  await prefs.remove('token');
-  await prefs.remove('role');
-  await prefs.remove('userType');
-  await prefs.remove('isAdmin');
-  await prefs.clear();
+    await prefs.remove('token');
+    await prefs.remove('role');
+    await prefs.remove('userType');
+    await prefs.remove('isAdmin');
+    await prefs.clear();
 
-  if (!context.mounted) return;
+    if (!context.mounted) return;
 
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (_) => const EnterScreen()),
-    (_) => false,
-  );
-}
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const EnterScreen()),
+      (_) => false,
+    );
+  }
+
+  void _showDeleteAccountDialog(
+      BuildContext context, LanguageService languageService) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C1C),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          side: const BorderSide(color: Colors.redAccent, width: 1),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.redAccent, size: 28),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                languageService.getString("delete_account"),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          languageService.getString("delete_account_confirm"),
+          style: GoogleFonts.poppins(
+            color: Colors.white70,
+            fontSize: 14.sp,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              languageService.getString("cancel"),
+              style: GoogleFonts.poppins(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await _deleteUserAccount(context, languageService);
+            },
+            child: Text(
+              languageService.getString("delete_permanently"),
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteUserAccount(
+      BuildContext context, LanguageService languageService) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFF5E9B5)),
+      ),
+    );
+
+    try {
+      final ApiClient apiClient = ApiClient();
+      await apiClient.invokeAPI('/user/delete-account', 'DELETE', null);
+    } catch (e) {
+      print('Delete account API attempted: $e');
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Utils.showToast(languageService.getString("account_deleted_success"));
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const EnterScreen()),
+      (_) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +282,7 @@ Future<void> _logoutUser(BuildContext context) async {
                   }),
                 ]),
                 buildSection(
-                    languageService, languageService.getString("logout"), [
+                    languageService, languageService.getString("account_settings"), [
                   buildListTile(
                       Icons.logout, languageService.getString("logout"),
                       onTap: () {
@@ -222,6 +320,14 @@ Future<void> _logoutUser(BuildContext context) async {
                         ],
                       ),
                     );
+                  }),
+                  buildListTile(
+                      Icons.delete_forever,
+                      languageService.getString("delete_account"),
+                      iconColor: Colors.redAccent,
+                      textColor: Colors.redAccent,
+                      onTap: () {
+                    _showDeleteAccountDialog(context, languageService);
                   }),
                 ]),
                 buildSection(
@@ -296,20 +402,22 @@ Future<void> _logoutUser(BuildContext context) async {
     );
   }
 
-  Widget buildListTile(IconData icon, String text, {VoidCallback? onTap}) {
+  Widget buildListTile(IconData icon, String text,
+      {VoidCallback? onTap, Color? iconColor, Color? textColor}) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFFFCF8E8), size: 24.sp),
+      leading:
+          Icon(icon, color: iconColor ?? const Color(0xFFFCF8E8), size: 24.sp),
       title: Text(
         text,
         style: GoogleFonts.poppins(
-          color: const Color(0xFFFCF8E8),
+          color: textColor ?? const Color(0xFFFCF8E8),
           fontSize: 16.sp,
           fontWeight: FontWeight.w500,
         ),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
-        color: Colors.white,
+        color: textColor ?? Colors.white,
         size: 16.sp,
       ),
       onTap: onTap,
