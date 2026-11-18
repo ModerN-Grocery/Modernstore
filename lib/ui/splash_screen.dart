@@ -341,10 +341,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
               // Main Layout Column
               Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         SizedBox(height: 20.h),
@@ -466,11 +468,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           ),
                         ),
 
-                        SizedBox(height: 22.h),
-
-                       
-
-                        SizedBox(height: 70.h),
+                        SizedBox(height: 28.h),
 
                         // 4. Progress bar with leading Sparkle Icon
                         // RepaintBoundary: limits frame repaints to only this widget
@@ -562,6 +560,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ],
                     ),
                   ),
+                ),
               ),
             ],
           ),

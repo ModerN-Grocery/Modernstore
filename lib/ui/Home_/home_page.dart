@@ -1013,38 +1013,42 @@ class ProductCard extends StatelessWidget {
           Column(
             children: [
               if (discountPercentage > 0)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          "₹ ${discountedPrice.toStringAsFixed(0)}",
-                          style: TextStyle(
-                              color: const Color(0xFFFFFFFF),
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 5.w),
-                        Text(
-                          "MRP ₹${basePrice.toStringAsFixed(0)}",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12.sp,
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: 5.w),
-                    Text(
-                      "${discountPercentage.toInt()}% OFF",
-                      style: TextStyle(
-                          color: const Color.fromARGB(255, 98, 199, 101),
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            "₹ ${discountedPrice.toStringAsFixed(0)}",
+                            style: TextStyle(
+                                color: const Color(0xFFFFFFFF),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(width: 5.w),
+                          Text(
+                            "MRP ₹${basePrice.toStringAsFixed(0)}",
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12.sp,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 5.w),
+                      Text(
+                        "${discountPercentage.toInt()}% OFF",
+                        style: TextStyle(
+                            color: const Color.fromARGB(255, 98, 199, 101),
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
