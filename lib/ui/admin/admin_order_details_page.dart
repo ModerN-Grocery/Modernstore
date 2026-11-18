@@ -122,43 +122,72 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
                   separatorBuilder: (_, __) => SizedBox(height: 10.h),
                   itemBuilder: (context, index) {
                     final item = widget.order.orderItems![index];
-                    return Container(
-                      padding: EdgeInsets.all(12.w),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C1C),
+                    return Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: InkWell(
+                        onTap: () => _showProductDetailsDialog(context, item),
                         borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C1C1C),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(color: Colors.white.withOpacity(0.06)),
+                          ),
+                          child: Row(
                             children: [
-                              SizedBox(
-                                width: 300.w,
-                                child: Text(
-                                  "Product : ${item.productId?.name ?? 'N/A'}",
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white, fontSize: 14.sp),
+                              if (item.productId?.images != null &&
+                                  item.productId!.images!.isNotEmpty) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6.r),
+                                  child: Container(
+                                    width: 44.w,
+                                    height: 44.h,
+                                    color: Colors.white10,
+                                    child: Image.network(
+                                      item.productId!.images!.first,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.image_not_supported_outlined,
+                                        color: Colors.white38,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                              ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Product : ${item.productId?.name ?? 'N/A'}",
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.white, fontSize: 14.sp),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      "Qty: ${item.quantity}",
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.white54, fontSize: 12.sp),
+                                    ),
+                                  ],
                                 ),
                               ),
+                              SizedBox(width: 8.w),
                               Text(
-                                "Qty: ${item.quantity}",
+                                "₹${item.itemTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
                                 style: GoogleFonts.poppins(
-                                    color: Colors.white54, fontSize: 12.sp),
+                                    color: const Color(0xFFF5E9B5),
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
-                          Text(
-                            "₹${item.itemTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
-                            style: GoogleFonts.poppins(
-                                color: const Color(0xFFF5E9B5),
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ],
+                        ),
                       ),
                     );
                   },
@@ -178,13 +207,12 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
                 // Price Breakdown
                 _buildInfoRow("Subtotal",
                     "₹${widget.order.itemsTotalAmount?.toStringAsFixed(2) ?? '0.00'}"),
-                SizedBox(height: 8.h),
-                _buildInfoRow("Delivery Charge",
-                    "₹${widget.order.deliveryCharge?.toStringAsFixed(2) ?? '0.00'}"),
                 SizedBox(height: 12.h),
-                _buildInfoRow("Grand Total",
-                    "₹${widget.order.finalAmount?.toStringAsFixed(2) ?? '0.00'}",
-                    isBold: true),
+                _buildInfoRow(
+                  "Grand Total",
+                  "₹${((widget.order.itemsTotalAmount != null && widget.order.itemsTotalAmount! > 0) ? widget.order.itemsTotalAmount! : ((widget.order.finalAmount ?? 0) - (widget.order.deliveryCharge ?? 0))).toStringAsFixed(2)}",
+                  isBold: true,
+                ),
                 SizedBox(height: 30.h),
               ],
             ),
@@ -323,6 +351,263 @@ class _AdminOrderDetailsPageState extends State<AdminOrderDetailsPage> {
                   )),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showProductDetailsDialog(BuildContext context, OrderItems item) {
+    final product = item.productId;
+    final String productName = product?.name ?? 'N/A';
+    final List<String> images = product?.images ?? [];
+    final String? imageUrl = images.isNotEmpty ? images.first : null;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1C1C1C),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          contentPadding: EdgeInsets.all(16.w),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  "Product Details",
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFFFCF8E8),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.of(dialogContext).pop(),
+                child: Container(
+                  padding: EdgeInsets.all(4.w),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white10,
+                  ),
+                  child: Icon(Icons.close, color: Colors.white70, size: 18.sp),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Container(
+                    width: double.infinity,
+                    height: 180.h,
+                    color: Colors.white.withOpacity(0.05),
+                    child: imageUrl != null && imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFFF5E9B5),
+                                ),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) => Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_not_supported_outlined,
+                                      size: 40.sp, color: Colors.white38),
+                                  SizedBox(height: 6.h),
+                                  Text(
+                                    "No Image Available",
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white38, fontSize: 11.sp),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_not_supported_outlined,
+                                    size: 40.sp, color: Colors.white38),
+                                SizedBox(height: 6.h),
+                                Text(
+                                  "No Image Available",
+                                  style: GoogleFonts.poppins(
+                                      color: Colors.white38, fontSize: 11.sp),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+
+                // Product Name
+                Text(
+                  productName,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                if (product?.unit != null && product!.unit!.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    "Unit: ${product.unit}",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+
+                SizedBox(height: 12.h),
+
+                // Quantity and Total Price Box
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Ordered Qty:",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white70,
+                              fontSize: 13.sp,
+                            ),
+                          ),
+                          Text(
+                            "${item.quantity ?? 1}",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (product?.basePrice != null) ...[
+                        SizedBox(height: 6.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Base Price / MRP:",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white54,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Text(
+                              "₹${product!.basePrice}",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white70,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (product?.discountPercentage != null &&
+                          product!.discountPercentage! > 0) ...[
+                        SizedBox(height: 6.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Discount:",
+                              style: GoogleFonts.poppins(
+                                color: Colors.greenAccent,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Text(
+                              "${product!.discountPercentage}% OFF",
+                              style: GoogleFonts.poppins(
+                                color: Colors.greenAccent,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      Divider(color: Colors.white12, height: 16.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Item Total:",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white70,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "₹${item.itemTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFFF5E9B5),
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF5E9B5),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  "Close",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

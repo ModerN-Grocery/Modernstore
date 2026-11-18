@@ -75,9 +75,74 @@ class _AdminProductState extends State<AdminProduct> {
     "PACKET"
   ];
   final TextEditingController sellingPriceController = TextEditingController();
+  final TextEditingController discountController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
+  void _onMrpChanged(String value, StateSetter setStateDialog) {
+    final basePrice = double.tryParse(value.trim());
+    if (basePrice == null || basePrice <= 0) {
+      setStateDialog(() {});
+      return;
+    }
+
+    final discount = double.tryParse(discountController.text.trim());
+    if (discount != null && discount >= 0 && discount <= 100) {
+      final selling = basePrice - (basePrice * discount / 100);
+      sellingPriceController.text =
+          selling % 1 == 0 ? selling.toInt().toString() : selling.toStringAsFixed(2);
+    } else {
+      final selling = double.tryParse(sellingPriceController.text.trim());
+      if (selling != null && selling >= 0 && selling <= basePrice) {
+        final disc = ((basePrice - selling) / basePrice) * 100;
+        discountController.text = disc.round().toString();
+      }
+    }
+    setStateDialog(() {});
+  }
+
+  void _onSellingPriceChanged(String value, StateSetter setStateDialog) {
+    final basePrice = double.tryParse(priceController.text.trim());
+    final selling = double.tryParse(value.trim());
+
+    if (basePrice != null && basePrice > 0 && selling != null) {
+      if (selling <= basePrice && selling >= 0) {
+        final discount = ((basePrice - selling) / basePrice) * 100;
+        discountController.text = discount.round().toString();
+      } else {
+        discountController.text = '0';
+      }
+    } else if (value.trim().isEmpty) {
+      discountController.text = '';
+    }
+    setStateDialog(() {});
+  }
+
+  void _onDiscountChanged(String value, StateSetter setStateDialog) {
+    final basePrice = double.tryParse(priceController.text.trim());
+    final discount = double.tryParse(value.trim());
+
+    if (basePrice != null && basePrice > 0) {
+      if (discount != null && discount >= 0 && discount <= 100) {
+        final selling = basePrice - (basePrice * discount / 100);
+        sellingPriceController.text =
+            selling % 1 == 0 ? selling.toInt().toString() : selling.toStringAsFixed(2);
+      } else if (value.trim().isEmpty) {
+        sellingPriceController.text =
+            basePrice % 1 == 0 ? basePrice.toInt().toString() : basePrice.toStringAsFixed(2);
+      }
+    }
+    setStateDialog(() {});
+  }
+
   String _calculateDiscountPercentage() {
+    final discText = discountController.text.trim();
+    if (discText.isNotEmpty) {
+      final parsed = double.tryParse(discText);
+      if (parsed != null && parsed >= 0 && parsed <= 100) {
+        return parsed.round().toString();
+      }
+    }
+
     final basePrice = double.tryParse(priceController.text.trim()) ?? 0.0;
     final sellingPrice =
         double.tryParse(sellingPriceController.text.trim()) ?? basePrice;
@@ -97,7 +162,9 @@ class _AdminProductState extends State<AdminProduct> {
     subNameController.dispose();
     priceController.dispose();
     sellingPriceController.dispose();
+    discountController.dispose();
     descriptionController.dispose();
+    quantityController.dispose();
     super.dispose();
   }
 
@@ -138,6 +205,16 @@ class _AdminProductState extends State<AdminProduct> {
   void _showAddProductDialog(BuildContext context) {
     _selectableQuantities.clear();
     quantityController.clear();
+    nameController.clear();
+    subNameController.clear();
+    priceController.clear();
+    sellingPriceController.clear();
+    discountController.clear();
+    descriptionController.clear();
+    _selectedUnit = null;
+    selectedCategoryId = null;
+    _image = null;
+    networkImageUrls = null;
 
     showDialog(
       context: context,
@@ -163,6 +240,7 @@ class _AdminProductState extends State<AdminProduct> {
                   priceController.clear();
                   _selectedUnit = null;
                   sellingPriceController.clear();
+                  discountController.clear();
                   descriptionController.clear();
                   _selectableQuantities = [];
                   quantityController.clear();
@@ -227,11 +305,15 @@ class _AdminProductState extends State<AdminProduct> {
       final double selling = base - (base * disc / 100);
       sellingPriceController.text =
           selling % 1 == 0 ? selling.toInt().toString() : selling.toStringAsFixed(2);
+      discountController.text =
+          disc % 1 == 0 ? disc.toInt().toString() : disc.toStringAsFixed(0);
     } else if (base > 0) {
       sellingPriceController.text =
           base % 1 == 0 ? base.toInt().toString() : base.toStringAsFixed(2);
+      discountController.text = '0';
     } else {
       sellingPriceController.text = '';
+      discountController.text = '';
     }
     descriptionController.text = productData.description ?? '';
     selectedCategoryId = productData.category?.id;
@@ -272,6 +354,7 @@ class _AdminProductState extends State<AdminProduct> {
                           priceController.clear();
                           _selectedUnit = null;
                           sellingPriceController.clear();
+                          discountController.clear();
                           descriptionController.clear();
                           _selectableQuantities = [];
                           quantityController.clear();
@@ -373,16 +456,51 @@ class _AdminProductState extends State<AdminProduct> {
                   Row(
                     children: [
                       Expanded(
+                        flex: 3,
                         child: _buildTextField(
                           priceController,
                           'MRP',
                           'Req',
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
-                          onChanged: (_) => setStateDialog(() {}),
+                          prefixText: '₹ ',
+                          onChanged: (val) =>
+                              _onMrpChanged(val, setStateDialog),
                         ),
                       ),
                       SizedBox(width: 8.w),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedUnit,
+                          items: _unitOptions.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            setState(() => _selectedUnit = newValue);
+                            setStateDialog(() {});
+                          },
+                          style: const TextStyle(
+                              color: Color(0xFF0A0909), fontSize: 16),
+                          decoration: InputDecoration(
+                            labelText: 'Unit',
+                            labelStyle: TextStyle(color: Colors.grey[700]),
+                            border: const OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          validator: (value) =>
+                              value == null ? 'Required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
                       Expanded(
                         child: _buildTextField(
                           sellingPriceController,
@@ -390,7 +508,9 @@ class _AdminProductState extends State<AdminProduct> {
                           'Req',
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
-                          onChanged: (_) => setStateDialog(() {}),
+                          prefixText: '₹ ',
+                          onChanged: (val) =>
+                              _onSellingPriceChanged(val, setStateDialog),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Req';
@@ -398,11 +518,33 @@ class _AdminProductState extends State<AdminProduct> {
                             final selling = double.tryParse(value.trim());
                             final base =
                                 double.tryParse(priceController.text.trim());
-                            if (selling == null) {
+                            if (selling == null || selling < 0) {
                               return 'Invalid';
                             }
                             if (base != null && selling > base) {
                               return 'Must be ≤ MRP';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: _buildTextField(
+                          discountController,
+                          'Discount (%)',
+                          '',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          suffixText: '%',
+                          onChanged: (val) =>
+                              _onDiscountChanged(val, setStateDialog),
+                          validator: (value) {
+                            if (value != null && value.trim().isNotEmpty) {
+                              final disc = double.tryParse(value.trim());
+                              if (disc == null || disc < 0 || disc > 100) {
+                                return '0 - 100%';
+                              }
                             }
                             return null;
                           },
@@ -422,21 +564,32 @@ class _AdminProductState extends State<AdminProduct> {
                         final percent = ((diff / base) * 100).round();
                         if (percent > 0) {
                           return Padding(
-                            padding: EdgeInsets.only(top: 6.h, bottom: 2.h),
-                            child: Row(
-                              children: [
-                                Icon(Icons.local_offer,
-                                    size: 15.sp, color: Colors.green[800]),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  '$percent% OFF (Save ₹${diff % 1 == 0 ? diff.toInt() : diff.toStringAsFixed(2)})',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green[800],
+                            padding: EdgeInsets.only(top: 8.h, bottom: 2.h),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w, vertical: 6.h),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(6.r),
+                                border:
+                                    Border.all(color: Colors.green.shade300),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.local_offer,
+                                      size: 15.sp, color: Colors.green[800]),
+                                  SizedBox(width: 6.w),
+                                  Text(
+                                    '$percent% OFF • Save ₹${diff % 1 == 0 ? diff.toInt() : diff.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green[800],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         } else {
@@ -460,30 +613,6 @@ class _AdminProductState extends State<AdminProduct> {
                       }
                       return const SizedBox.shrink();
                     },
-                  ),
-                  SizedBox(height: 12.h),
-                  DropdownButtonFormField<String>(
-                    value: _selectedUnit,
-                    items: _unitOptions.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() => _selectedUnit = newValue);
-                      setStateDialog(() {});
-                    },
-                    style:
-                        const TextStyle(color: Color(0xFF0A0909), fontSize: 16),
-                    decoration: InputDecoration(
-                      labelText: 'Unit',
-                      labelStyle: TextStyle(color: Colors.grey[700]),
-                      border: const OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    validator: (value) => value == null ? 'Required' : null,
                   ),
 
                   // --- NEW SELECTABLE QUANTITY SECTION ---
@@ -691,7 +820,9 @@ class _AdminProductState extends State<AdminProduct> {
       {int maxLines = 1,
       TextInputType keyboardType = TextInputType.multiline,
       ValueChanged<String>? onChanged,
-      FormFieldValidator<String>? validator}) {
+      FormFieldValidator<String>? validator,
+      String? prefixText,
+      String? suffixText}) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
@@ -701,6 +832,8 @@ class _AdminProductState extends State<AdminProduct> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.grey[700]),
+        prefixText: prefixText,
+        suffixText: suffixText,
         border: const OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
@@ -727,9 +860,9 @@ class _AdminProductState extends State<AdminProduct> {
             priceController.clear();
             _selectedUnit = null;
             sellingPriceController.clear();
+            discountController.clear();
             _isUploading = false;
             quantityController.clear();
-            _isUploading = false;
           });
         },
         child: const Text(
